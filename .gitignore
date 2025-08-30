@@ -8,3 +8,9 @@
 .vscode/
 .DS_Store
 
+# Jetbrains IDE
+.idea/
+/.junie/
+
+# Python virtual env
+/.venv/

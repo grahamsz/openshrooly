@@ -1,0 +1,19 @@
+# Lion's Mane program configuration parameters
+globals:
+  - id: lions_mane_display_name
+    type: std::string
+    restore_value: no
+    initial_value: "Lion's Mane"
+
+  - id: lm_period
+    type: int
+    restore_value: yes
+    initial_value: '161'
+  - id: lm_phases
+    type: int[10]
+    restore_value: yes
+    initial_value: '{7,7,7,7,45,7,7,7,7,60}'
+  - id: lm_speeds
+    type: int[10]
+    restore_value: yes
+    initial_value: '{10,20,30,40,50,40,30,20,10,0}'

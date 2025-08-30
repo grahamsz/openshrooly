@@ -4,6 +4,8 @@ esphome:
   project:
     name: grahamsz.openshrooly
     version: 0.0.0-dev
+  includes:
+    - ../lambda/programs.h
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -61,7 +63,7 @@ light:
   - platform: monochromatic
     output: white_led_pwm
     name: "White LED Strip"
-
+    id: white_led
   - platform: esp32_rmt_led_strip
     id: rgb_led_strip
     name: "RGB WLED Strip"
@@ -77,6 +79,12 @@ light:
       - addressable_rainbow:
       - addressable_scan:
       - addressable_twinkle:
+
+fan:
+  - platform: speed
+    output: fan_pwm
+    name: "Air Exchange Fan"
+    id: air_fan
 
 # Humidifier control via I2C commands
 switch:
@@ -95,19 +103,16 @@ switch:
           bool ok = id(bus_a).write(0x6C, data, 2);
           ESP_LOGI("humidifier", "TURN OFF: sent [0x00,0x00] to 0x6C, ok=%d", ok);
 
-# Air exchange fan control via PWM output
-fan:
-  - platform: speed
-    output: fan_pwm
-    name: "Air Exchange Fan"
 
 sensor:
   - platform: sht4x
     i2c_id: bus_a
     temperature:
       name: "Temperature"
+      id: temp
     humidity:
       name: "Humidity"
+      id: rh
     update_interval: 30s
 
   - platform: pulse_counter
@@ -127,6 +132,153 @@ time:
     address: 0x6F     # MCP7940N default I²C address
     id: mcp7940n_time
     timezone: "UTC"
+  - platform: sntp
+    id: sntp_time
+    timezone: "UTC"
 
 esp32_touch:
 
+# Runtime state to emulate the LUA control surface in ESPHome with selects and buttons
+select:
+  - platform: template
+    name: "Program"
+    id: program_select
+    optimistic: true
+    restore_value: true
+    options:
+      - "oyster_v2"
+      - "lions_mane_v2"
+    set_action:
+      - lambda: |-
+          // Update active program key
+          id(active_program) = id(program_select).state.c_str();
+          // Copy selected program parameters into active_* globals
+          if (id(active_program) == "oyster_v2") {
+            id(active_period) = id(oyster_period);
+            for (int i = 0; i < 10; i++) { id(active_phases)[i] = id(oyster_phases)[i]; }
+            for (int i = 0; i < 10; i++) { id(active_speeds)[i] = id(oyster_speeds)[i]; }
+            id(active_display_name) = id(oyster_display_name);
+          } else if (id(active_program) == "lions_mane_v2") {
+            id(active_period) = id(lm_period);
+            for (int i = 0; i < 10; i++) { id(active_phases)[i] = id(lm_phases)[i]; }
+            for (int i = 0; i < 10; i++) { id(active_speeds)[i] = id(lm_speeds)[i]; }
+            id(active_display_name) = id(lions_mane_display_name);
+          }
+          // Publish display name
+          id(program_name).publish_state(id(active_display_name));
+
+button:
+  - platform: template
+    name: "Program Start"
+    id: program_start
+    on_press:
+      - lambda: |-
+          id(program_running) = true;
+          id(program_last_tick) = millis();
+  - platform: template
+    name: "Program Stop"
+    id: program_stop
+    on_press:
+      - lambda: |-
+          id(program_running) = false;
+          // Stop all actuators
+          id(humidifier_fan).turn_off();
+          auto fan = id(air_fan);
+          if (fan) fan->turn_off();
+          auto wl = id(white_led);
+          if (wl) wl->turn_off();
+          auto rgb = id(rgb_led_strip);
+          if (rgb) rgb->turn_off();
+
+text_sensor:
+  - platform: template
+    name: "Program Name"
+    id: program_name
+  - platform: template
+    name: "Program Status"
+    id: program_status
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          using namespace shrooly;
+          if (!id(program_running)) {
+            // Keep program name displayed when idle
+            id(program_name).publish_state(id(active_display_name));
+            id(program_status).publish_state("idle");
+            return;
+          }
+          auto status = run_shrooly_program();
+          id(program_status).publish_state(status);
+
+# Simple time source to get hour-of-day for the lighting window
+
+
+# Include per-program parameter YAML files
+packages:
+  oyster_params: !include programs/oyster_v2.yaml
+  lions_mane_params: !include programs/lions_mane_v2.yaml
+
+# Helpers (globals)
+globals:
+  # Active program key (matches select)
+  - id: active_program
+    type: std::string
+    restore_value: yes
+    initial_value: 'oyster_v2'
+
+  # Active program resolved params (populated when selection changes)
+  - id: active_display_name
+    type: std::string
+    restore_value: yes
+    initial_value: 'Oyster'
+  - id: active_period
+    type: int
+    restore_value: yes
+    initial_value: '283'
+  - id: active_phases
+    type: int[10]
+    restore_value: yes
+    initial_value: '{7,7,7,7,150,7,7,7,7,77}'
+  - id: active_speeds
+    type: int[10]
+    restore_value: yes
+    initial_value: '{10,20,30,40,50,40,30,20,10,0}'
+
+  # Lighting settings (common defaults; can be per-program if needed)
+  - id: sunrise_h
+    type: int
+    restore_value: yes
+    initial_value: '8'
+  - id: photoperiod_h
+    type: int
+    restore_value: yes
+    initial_value: '10'
+  - id: white_pct
+    type: int
+    restore_value: yes
+    initial_value: '5'
+
+  # Humidity targets (common defaults; can be overridden by program by copying on select)
+  - id: rh_temp_split_c
+    type: float
+    restore_value: yes
+    initial_value: '21.0'
+  - id: rh_target_below_split
+    type: int
+    restore_value: yes
+    initial_value: '85'
+  - id: rh_target_at_or_above_split
+    type: int
+    restore_value: yes
+    initial_value: '90'
+
+  - id: program_running
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
+  - id: program_last_tick
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'

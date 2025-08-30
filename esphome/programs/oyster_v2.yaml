@@ -1,0 +1,19 @@
+# Oyster program configuration parameters
+globals:
+  - id: oyster_display_name
+    type: std::string
+    restore_value: no
+    initial_value: 'Oyster'
+
+  - id: oyster_period
+    type: int
+    restore_value: yes
+    initial_value: '283'
+  - id: oyster_phases
+    type: int[10]
+    restore_value: yes
+    initial_value: '{7,7,7,7,150,7,7,7,7,77}'
+  - id: oyster_speeds
+    type: int[10]
+    restore_value: yes
+    initial_value: '{10,20,30,40,50,40,30,20,10,0}'
