@@ -13,28 +13,21 @@
       static bool first_reading = true;
 
       // Differential water level detection algorithm
-      auto device = new i2c::I2CDevice();
-      device->set_i2c_bus(id(bus_a));
-      device->set_i2c_address(0x6C);
-
       // I2C Memory Map addresses for sensors
       uint8_t regs[] = {0x03, 0x07, 0x0B, 0x0F};  // Empty, Low, Mid, High
       uint32_t sensor_vals[4] = {0};
-      uint8_t data[4];
 
       // 1. Read 32-bit values from each sensor
       for (int i = 0; i < 4; i++) {
-        if (device->read_register(regs[i], data, 4)) { // note true and false seem to be flipped!
+        id(copro_bus).execute(0x6C, regs[i], 0, 0, 4);
+
+        if (id(copro_last_error)) {
           ESP_LOGW("water", "Read failed at 0x%02X", regs[i]);
-          delete device;
           id(water_level_percent).publish_state(NAN);
           return;
         }
-        // Little-endian 32-bit value
-        sensor_vals[i] = (uint32_t)data[0]
-                       | ((uint32_t)data[1] << 8)
-                       | ((uint32_t)data[2] << 16)
-                       | ((uint32_t)data[3] << 24);
+
+        sensor_vals[i] = id(copro_last_read_u32);
       }
 
       // Determine water level - always use calibration values (defaults or user-set)
@@ -147,8 +140,6 @@
 
       // Log the final calculated percentage
       // ESP_LOGI("water", "Level: %.1f%% (avg: %.1f%%)", water_level, avg);
-
-      delete device;
 
       // Publish the result to the sensor
       id(water_level_percent).publish_state(avg);

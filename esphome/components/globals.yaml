@@ -106,6 +106,16 @@ globals:
     restore_value: no
     initial_value: '0'
 
+  - id: copro_last_error
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  - id: copro_last_read_u32
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+
   - id: fan_spinup_failure
     type: bool
     restore_value: no

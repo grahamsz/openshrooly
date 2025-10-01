@@ -7,11 +7,10 @@
 interval: 60s  # Every minute, update the humidifier I2C register just in case it didn't register
 then:
   - lambda: |-
-      uint8_t data[2];
       if (id(humidifier_fan).state) {
         // Humidifier should be ON - send ON command
-        data[0] = 0x00; data[1] = 0x01;
-        bool err = id(bus_a).write(0x6C, data, 2);
+        id(copro_bus).execute(0x6C, 0x00, 0x01, 2, 0);
+        bool err = id(copro_last_error);
         if (err) {
           ESP_LOGW("humidifier_resync", "Failed to resync humidifier ON state");
         } else {
@@ -19,8 +18,8 @@ then:
         }
       } else {
         // Humidifier should be OFF - send OFF command
-        data[0] = 0x00; data[1] = 0x00;
-        bool err = id(bus_a).write(0x6C, data, 2);
+        id(copro_bus).execute(0x6C, 0x00, 0x00, 2, 0);
+        bool err = id(copro_last_error);
         if (err) {
           ESP_LOGW("humidifier_resync", "Failed to resync humidifier OFF state");
         } else {

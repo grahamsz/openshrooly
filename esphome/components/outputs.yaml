@@ -53,8 +53,8 @@ switch:
     optimistic: true
     turn_on_action:
       - lambda: |-
-          uint8_t data[2] = {0x00, 0x01};
-          bool err = id(bus_a).write(0x6C, data, 2);  // true = error
+          id(copro_bus).execute(0x6C, 0x00, 0x01, 2, 0);
+          bool err = id(copro_last_error);
           if (err) {
             ESP_LOGE("humidifier", "TURN ON: write to 0x6C failed (NACK)");
             id(i2c_failure_count) = id(i2c_failure_count) + 1;
@@ -68,8 +68,8 @@ switch:
           }
     turn_off_action:
       - lambda: |-
-          uint8_t data[2] = {0x00, 0x00};
-          bool err = id(bus_a).write(0x6C, data, 2);  // true = error
+          id(copro_bus).execute(0x6C, 0x00, 0x00, 2, 0);
+          bool err = id(copro_last_error);
           if (err) {
             ESP_LOGE("humidifier", "TURN OFF: write to 0x6C failed (NACK)");
             id(i2c_failure_count) = id(i2c_failure_count) + 1;

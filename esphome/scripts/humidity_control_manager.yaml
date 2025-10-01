@@ -15,6 +15,11 @@
         float h = id(humidity).state;
         float t = id(target_humidity).state;
 
+        auto copro_write_humidifier = [&](uint8_t value) -> bool {
+          id(copro_bus).execute(0x6C, 0x00, value, 2, 0);
+          return !id(copro_last_error);
+        };
+
         // Don't control humidifier if humidity is 0 (sensor not initialized)
         if (h == 0.0f) {
           if (id(humidifier_on_flag)) {
@@ -23,16 +28,11 @@
             id(humidifier_pwm_control).stop();  // Stop PWM control script
 
             // Explicitly turn off the fan via I2C to ensure it's OFF
-            auto device = new i2c::I2CDevice();
-            device->set_i2c_bus(id(bus_a));
-            device->set_i2c_address(0x6C);
-            uint8_t data[2];
-            data[0] = 0x00;  // Register
-            data[1] = 0x00;  // Turn off
-            device->write(data, 2);
-            delete device;
-
-            ESP_LOGW("humidity", "Turning off humidifier - waiting for humidity sensor to initialize");
+            if (!copro_write_humidifier(0x00)) {
+              ESP_LOGW("humidity", "Failed to turn off humidifier while waiting for humidity sensor to initialize");
+            } else {
+              ESP_LOGW("humidity", "Turning off humidifier - waiting for humidity sensor to initialize");
+            }
           }
           // Show waiting status
           id(humidifier_fan_status).publish_state("Waiting to Settle");
@@ -76,14 +76,9 @@
           id(humidifier_pwm_control).stop();
 
           // Explicitly turn off the fan via I2C to ensure it's OFF
-          auto device = new i2c::I2CDevice();
-          device->set_i2c_bus(id(bus_a));
-          device->set_i2c_address(0x6C);
-          uint8_t data[2];
-          data[0] = 0x00;  // Register
-          data[1] = 0x00;  // Turn off
-          device->write(data, 2);
-          delete device;
+          if (!copro_write_humidifier(0x00)) {
+            ESP_LOGW("humidity", "Failed to send humidifier OFF command");
+          }
         }
 
         // Always publish status showing actual humidity

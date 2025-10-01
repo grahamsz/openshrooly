@@ -11,14 +11,6 @@ button:
     name: "Restart OpenShrooly"
     entity_category: diagnostic
 
-# I2C configuration (Bus A - for capacitive touch inputs)
-i2c:
-  - id: bus_a
-    sda: GPIO3
-    scl: GPIO4
-    scan: true
-    frequency: 100kHz
-
 # Touch Capacitive Sensors (AT42QT1010 chips)
 esp32_touch:
   setup_mode: false

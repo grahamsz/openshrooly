@@ -1,0 +1,67 @@
+- id: copro_bus
+  mode: queued
+  parameters:
+    address: uint8_t
+    reg: uint8_t
+    write_value: uint32_t
+    write_length: uint8_t
+    read_length: uint8_t
+  then:
+    - lambda: |-
+        id(copro_last_error) = false;
+        id(copro_last_read_u32) = 0;
+
+        auto device = new i2c::I2CDevice();
+        device->set_i2c_bus(id(bus_a));
+        device->set_i2c_address(address);
+
+        bool error = false;
+
+        constexpr uint8_t kMaxWriteLength = 5;  // register + up to 4 bytes
+
+        if (write_length > 0) {
+          if (write_length > kMaxWriteLength) {
+            ESP_LOGE("copro", "Write length %u exceeds supported %u bytes", write_length, kMaxWriteLength);
+            error = true;
+          } else {
+            uint8_t buffer[kMaxWriteLength] = {0};
+            buffer[0] = reg;
+            for (uint8_t i = 1; i < write_length; ++i) {
+              buffer[i] = (write_value >> (8 * (i - 1))) & 0xFF;
+            }
+
+            auto ec = device->write(buffer, write_length);
+            if (ec != esphome::i2c::ErrorCode::OK) {
+              ESP_LOGW("copro", "Write to 0x%02X failed (err=%d)", address, static_cast<int>(ec));
+              error = true;
+            }
+          }
+        }
+
+        if (!error && read_length > 0) {
+          if (read_length > 4) {
+            ESP_LOGE("copro", "Read length %u exceeds supported 4 bytes", read_length);
+            error = true;
+            id(copro_last_read_u32) = 0;
+          } else {
+            uint8_t buffer[4] = {0};
+            auto ec = device->read_register(reg, buffer, read_length);
+            if (ec != esphome::i2c::ErrorCode::OK) {
+              ESP_LOGW("copro", "Read from 0x%02X failed (err=%d)", address, static_cast<int>(ec));
+              error = true;
+              id(copro_last_read_u32) = 0;
+            } else {
+              uint32_t value = 0;
+              for (uint8_t i = 0; i < read_length; ++i) {
+                value |= (uint32_t(buffer[i]) << (8 * i));
+              }
+              id(copro_last_read_u32) = value;
+            }
+          }
+        }
+
+        delete device;
+
+        if (error) {
+          id(copro_last_error) = true;
+        }
