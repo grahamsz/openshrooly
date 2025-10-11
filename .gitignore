@@ -15,3 +15,4 @@ webapp/out/
 
 **/__pycache__/
 esphome/data/www/_next/static/
+.direnv/
