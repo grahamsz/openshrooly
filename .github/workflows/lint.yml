@@ -1,0 +1,41 @@
+name: Lint & Format
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Run formatters and linters
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Install web dependencies
+        run: npm ci
+        working-directory: webapp
+
+      - name: Run lint-action
+        continue-on-error: true
+        uses: wearerequired/lint-action@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          eslint: true
+          eslint_dir: webapp
+          prettier: true
+          prettier_dir: .
+          prettier_extensions: js,jsx,ts,tsx,json,css,md,yml,yaml
+          auto_fix: false
