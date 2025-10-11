@@ -47,23 +47,23 @@ void SWDProgrammer::program() {
 
   #if (defined(CONFIG_FREERTOS_UNICORE) && CONFIG_FREERTOS_UNICORE)
     BaseType_t res = xTaskCreate(&SWDProgrammer::task_trampoline,
-                                 "swd_prog",
-                                 SWD_TASK_STACK,
-                                 this,
-                                 1,
-                                 nullptr);
+                                "swd_prog",
+                                SWD_TASK_STACK,
+                                this,
+                                1,
+                                nullptr);
     if (res != pdPASS) {
       ESP_LOGE(TAG, "program(): xTaskCreate failed (err=%d)", (int)res);
       swd_busy = false;  // release if creation failed
     }
   #else
     BaseType_t res = xTaskCreatePinnedToCore(&SWDProgrammer::task_trampoline,
-                                             "swd_prog",
-                                             SWD_TASK_STACK,
-                                             this,
-                                             1,
-                                             nullptr,
-                                             SWD_TASK_CORE);
+                                            "swd_prog",
+                                            SWD_TASK_STACK,
+                                            this,
+                                            1,
+                                            nullptr,
+                                            SWD_TASK_CORE);
     if (res != pdPASS) {
       ESP_LOGE(TAG, "program(): xTaskCreatePinnedToCore failed (err=%d)", (int)res);
       swd_busy = false;  // release if creation failed
@@ -86,7 +86,7 @@ void SWDProgrammer::task_trampoline(void *param) {
 
 void SWDProgrammer::task_body() {
   ESP_LOGI(TAG, "SWD start (clk=%d dio=%d rst=%d, %u bytes)",
-           clk_, dio_, rst_, (unsigned) firmware_bin_len);
+          clk_, dio_, rst_, (unsigned) firmware_bin_len);
   vTaskDelay(1);  // yield ~1 ms
 
   swd_pins_t pins{ (gpio_num_t)clk_, (gpio_num_t)dio_, (gpio_num_t)rst_ };
@@ -97,7 +97,7 @@ void SWDProgrammer::task_body() {
   if (this->status_sensor_)
       this->status_sensor_->publish_state("Programming");
   swd_init_connection(&pins);
-  
+
   perform_full_reset_sequence(&pins);
   halt_cores(&pins);
   swd_program_sram(&pins, firmware_bin, (uint32_t)firmware_bin_len);
@@ -117,7 +117,7 @@ void SWDProgrammer::task_body() {
     ESP_LOGE(TAG, "SWD programming failed (bad IDCODE 0x%08X)", id);
     if (this->status_sensor_)
       this->status_sensor_->publish_state("Error");
-  
+
 
   }
 

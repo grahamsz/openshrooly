@@ -211,7 +211,7 @@ number:
           // Validate min is less than max
           if (x >= id(temperature_warning_maximum).state) {
             ESP_LOGW("temp_control", "⚠️ Min temp (%.1f°C) must be less than max temp (%.1f°C)",
-                     x, id(temperature_warning_maximum).state);
+                    x, id(temperature_warning_maximum).state);
           }
 
   - platform: template
@@ -235,7 +235,7 @@ number:
           // Validate max is greater than min
           if (x <= id(temperature_warning_minimum).state) {
             ESP_LOGW("temp_control", "⚠️ Max temp (%.1f°C) must be greater than min temp (%.1f°C)",
-                     x, id(temperature_warning_minimum).state);
+                    x, id(temperature_warning_minimum).state);
           }
 
   - platform: template
@@ -366,7 +366,7 @@ number:
     unit_of_measurement: "%"
     web_server:
       sorting_group_id: grp_lights
-      sorting_weight: 35    
+      sorting_weight: 35
     optimistic: true
     restore_value: true
     initial_value: 0
@@ -384,7 +384,7 @@ number:
     optimistic: true
     web_server:
       sorting_group_id: grp_lights
-      sorting_weight: 45    
+      sorting_weight: 45
     restore_value: true
     initial_value: 0
     set_action:
@@ -400,7 +400,7 @@ number:
     unit_of_measurement: "%"
     web_server:
       sorting_group_id: grp_lights
-      sorting_weight: 55    
+      sorting_weight: 55
     optimistic: true
     restore_value: true
     initial_value: 100
@@ -418,9 +418,9 @@ text_sensor:
     internal: true
     web_server:
       sorting_group_id: grp_humidity
-      sorting_weight: 1   
+      sorting_weight: 1
 
-  # Text sensors moved to components/text_sensors.yaml for earlier loading    
+  # Text sensors moved to components/text_sensors.yaml for earlier loading
 
 
 
@@ -456,4 +456,4 @@ button:
       - swd_programmer.program: swd
     web_server:
       sorting_group_id: grp_hidden
-      sorting_weight: 1          
+      sorting_weight: 1

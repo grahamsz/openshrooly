@@ -29,7 +29,7 @@ async def to_code(config):
     if CONF_CLK in config: cg.add(var.set_clk(config[CONF_CLK]))
     if CONF_DIO in config: cg.add(var.set_dio(config[CONF_DIO]))
     if CONF_RST in config: cg.add(var.set_rst(config[CONF_RST]))
-    
+
     if "status" in config:
         sens = await text_sensor.new_text_sensor(config["status"])
         cg.add(var.set_status_text_sensor(sens))
@@ -53,7 +53,7 @@ async def swd_programmer_program_to_code(config, action_id, template_arg, args):
     else:
         parent = await cg.get_variable(config)
 
-    
+
     # Create ProgramAction(parent)
     var = cg.new_Pvariable(action_id, parent)
     return var

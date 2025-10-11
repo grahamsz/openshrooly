@@ -17,7 +17,7 @@ class SWDProgrammer : public Component {
   void set_rst(int p) { rst_ = p; }
 
 
-  void setup() override;  
+  void setup() override;
   void loop() override {}
 
   void program();  // launches FreeRTOS task

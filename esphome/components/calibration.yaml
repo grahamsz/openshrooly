@@ -42,7 +42,7 @@ button:
             for (int i = 0; i < 4; i++) {
               if (!device->read_register(regs[i], data, 4)) {
                 dry_values[i] = (uint32_t)data[0] | ((uint32_t)data[1] << 8) |
-                               ((uint32_t)data[2] << 16) | ((uint32_t)data[3] << 24);
+                              ((uint32_t)data[2] << 16) | ((uint32_t)data[3] << 24);
               } else {
                 success = false;
                 break;
@@ -57,7 +57,7 @@ button:
 
               ESP_LOGI("calibration", "✅ DRY CALIBRATION COMPLETE!");
               ESP_LOGI("calibration", "Dry values - S0:%u, S1:%u, S2:%u, S3:%u",
-                       dry_values[0], dry_values[1], dry_values[2], dry_values[3]);
+                      dry_values[0], dry_values[1], dry_values[2], dry_values[3]);
               id(is_calibrated) = true;
               id(calibration_step) = 0;
             } else {

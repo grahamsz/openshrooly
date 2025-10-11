@@ -145,15 +145,15 @@
             // We're in early morning, lights already turned on yesterday at start_min
             // They'll turn on again today at start_min
             id(lights_status).publish_state(str_sprintf("OFF — turns ON at %02d:%02d",
-                                                       sunrise_h, 0).c_str());
+                                                      sunrise_h, 0).c_str());
           } else if (local_min < start_min) {
             // We're before today's start time - lights turn on today
             id(lights_status).publish_state(str_sprintf("OFF — turns ON at %02d:%02d",
-                                                       sunrise_h, 0).c_str());
+                                                      sunrise_h, 0).c_str());
           } else {
             // We're after today's start time - lights turn on tomorrow
             id(lights_status).publish_state(str_sprintf("OFF — turns ON at %02d:%02d tomorrow",
-                                                       sunrise_h, 0).c_str());
+                                                      sunrise_h, 0).c_str());
           }
         } else {
           // Normal schedule (doesn't cross midnight)
@@ -178,11 +178,11 @@
 
       // Detect schedule changes
       bool schedule_changed = (sunrise_h != prev_sunrise_h) ||
-                             (fabsf(id(light_hours).state - prev_light_hours) > 0.01);
+                            (fabsf(id(light_hours).state - prev_light_hours) > 0.01);
 
       if (schedule_changed) {
         ESP_LOGI("shrooly", "Schedule changed: sunrise=%dh, duration=%.1fh, in_window=%s",
-                 sunrise_h, id(light_hours).state, in_win ? "YES" : "NO");
+                sunrise_h, id(light_hours).state, in_win ? "YES" : "NO");
         prev_sunrise_h = sunrise_h;
         prev_light_hours = id(light_hours).state;
 
@@ -206,8 +206,8 @@
           apply_rgb_settings(2000);  // 2 second transition
 
           ESP_LOGI("shrooly", "Lights ON (schedule change) — white=%.0f lux (%.1f%%), rgb=(%d,%d,%d)",
-                   id(white_intensity).state, brightness_pct,
-                   (int) id(color_r).state, (int) id(color_g).state, (int) id(color_b).state);
+                  id(white_intensity).state, brightness_pct,
+                  (int) id(color_r).state, (int) id(color_g).state, (int) id(color_b).state);
         } else if (!in_win) {
           ESP_LOGI("shrooly", "Schedule change puts us out of window - turning lights OFF");
           prev_on = false;
@@ -258,8 +258,8 @@
           rgb_on.perform();
 
           ESP_LOGI("shrooly", "Lights ON — white=%.0f lux (%.1f%%), rgb=(%d,%d,%d)",
-                   id(white_intensity).state, brightness_pct,
-                   (int) id(color_r).state, (int) id(color_g).state, (int) id(color_b).state);
+                  id(white_intensity).state, brightness_pct,
+                  (int) id(color_r).state, (int) id(color_g).state, (int) id(color_b).state);
 
         } else {
           // ON -> OFF : fade both once

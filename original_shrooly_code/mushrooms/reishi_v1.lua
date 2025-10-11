@@ -127,4 +127,3 @@ control_lighting(current_epoch)
 control_fan(current_epoch)
 control_humidity(current_epoch)
 println("Cultivation program ended, next run in 1000 ms")
-

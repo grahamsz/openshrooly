@@ -499,8 +499,3 @@ void swd_resume_execution(const swd_pins_t *pins){
     ap_write_tar(DHCSR_RESUME); swd_clock_cycle();
   }
 }
-
-
-
-
-

@@ -67,13 +67,13 @@ You can create a LittleFS image and flash it:
 
 1. Install `mklittlefs` tool
 2. Create the filesystem image:
-   ```bash
-   mklittlefs -c out -s 1048576 littlefs.bin
-   ```
+  ```bash
+  mklittlefs -c out -s 1048576 littlefs.bin
+  ```
 3. Flash to ESP32:
-   ```bash
-   esptool.py --port /dev/ttyUSB0 write_flash 0x310000 littlefs.bin
-   ```
+  ```bash
+  esptool.py --port /dev/ttyUSB0 write_flash 0x310000 littlefs.bin
+  ```
 
 #### Option C: Custom upload script
 

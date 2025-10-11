@@ -32,9 +32,9 @@
         }
         // Little-endian 32-bit value
         sensor_vals[i] = (uint32_t)data[0]
-                       | ((uint32_t)data[1] << 8)
-                       | ((uint32_t)data[2] << 16)
-                       | ((uint32_t)data[3] << 24);
+                      | ((uint32_t)data[1] << 8)
+                      | ((uint32_t)data[2] << 16)
+                      | ((uint32_t)data[3] << 24);
       }
 
       // Determine water level - always use calibration values (defaults or user-set)

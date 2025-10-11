@@ -161,7 +161,7 @@ jobs:
             ${{ steps.build.outputs.name }}/${{ steps.build.outputs.name }}.ota.bin
             ${{ steps.build.outputs.name }}/manifest.json
 
-       # Dated dev prerelease
+      # Dated dev prerelease
       - name: Publish dated dev prerelease
         if: env.SHOULD_PUBLISH_DEV == 'true'
         uses: softprops/action-gh-release@v2
@@ -175,7 +175,7 @@ jobs:
             ${{ steps.build.outputs.name }}/${{ steps.build.outputs.name }}.factory.bin
             ${{ steps.build.outputs.name }}/${{ steps.build.outputs.name }}.ota.bin
             ${{ steps.build.outputs.name }}/manifest.json
-      
+
       # Proper release for pushed tags (e.g., 0.1.0)
       - name: Publish release for version tag
         if: env.SHOULD_PUBLISH_RELEASE == 'true'

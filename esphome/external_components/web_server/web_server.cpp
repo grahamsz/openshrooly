@@ -118,7 +118,7 @@ void DeferredUpdateEventSource::deq_push_back_with_dedup_(void *source, message_
   DeferredEvent item(source, message_generator);
 
   auto iter = std::find_if(this->deferred_queue_.begin(), this->deferred_queue_.end(),
-                           [&item](const DeferredEvent &test) -> bool { return test == item; });
+                          [&item](const DeferredEvent &test) -> bool { return test == item; });
 
   if (iter != this->deferred_queue_.end()) {
     (*iter) = item;
@@ -140,7 +140,7 @@ void DeferredUpdateEventSource::process_deferred_queue_() {
       if (this->consecutive_send_failures_ >= MAX_CONSECUTIVE_SEND_FAILURES) {
         // Too many failures, connection is likely dead
         ESP_LOGW(TAG, "Closing stuck EventSource connection after %" PRIu16 " failed sends",
-                 this->consecutive_send_failures_);
+                this->consecutive_send_failures_);
         this->close();
         this->deferred_queue_.clear();
       }
@@ -190,7 +190,7 @@ void DeferredUpdateEventSource::deferrable_send_state(void *source, const char *
 
 // used for logs plus the initial ping/config
 void DeferredUpdateEventSource::try_send_nodefer(const char *message, const char *event, uint32_t id,
-                                                 uint32_t reconnect) {
+                                                uint32_t reconnect) {
   this->send(message, event, id, reconnect);
 }
 
@@ -208,7 +208,7 @@ void DeferredUpdateEventSourceList::deferrable_send_state(void *source, const ch
 }
 
 void DeferredUpdateEventSourceList::try_send_nodefer(const char *message, const char *event, uint32_t id,
-                                                     uint32_t reconnect) {
+                                                    uint32_t reconnect) {
   for (DeferredUpdateEventSource *dues : *this) {
     dues->try_send_nodefer(message, event, id, reconnect);
   }
@@ -1419,7 +1419,7 @@ std::string WebServer::climate_json(climate::Climate *obj, JsonDetail start_conf
       root["target_temperature_high"] = value_accuracy_to_string(obj->target_temperature_high, target_accuracy);
       if (!has_state) {
         root["state"] = value_accuracy_to_string((obj->target_temperature_high + obj->target_temperature_low) / 2.0f,
-                                                 target_accuracy);
+                                                target_accuracy);
       }
     } else {
       root["target_temperature"] = value_accuracy_to_string(obj->target_temperature, target_accuracy);
