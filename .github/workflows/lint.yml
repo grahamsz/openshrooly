@@ -29,7 +29,6 @@ jobs:
         working-directory: webapp
 
       - name: Run lint-action
-        continue-on-error: true
         uses: wearerequired/lint-action@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -39,3 +38,4 @@ jobs:
           prettier_dir: .
           prettier_extensions: js,jsx,ts,tsx,json,css,md,yml,yaml
           auto_fix: false
+          fail_on_error: false
