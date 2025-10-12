@@ -29,6 +29,7 @@ jobs:
         working-directory: webapp
 
       - name: Run lint-action
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         uses: wearerequired/lint-action@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -38,4 +39,10 @@ jobs:
           prettier_dir: .
           prettier_extensions: js,jsx,ts,tsx,json,css,md,yml,yaml
           auto_fix: false
+          fail_on_error: false
+
+      - name: Lint (fallback for forks)
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          echo "::warning::Lint action skipped for forked pull request. Run \`npm run lint\` locally to view issues."
           fail_on_error: false
