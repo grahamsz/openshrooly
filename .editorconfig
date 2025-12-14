@@ -14,5 +14,8 @@ indent_size = 4
 [Makefile]
 indent_style = tab
 
+[*.ipynb]
+indent_size = 1
+
 [*.md]
 trim_trailing_whitespace = false
