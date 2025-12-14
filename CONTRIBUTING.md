@@ -13,28 +13,28 @@ Install the languages with your preferred package manager (e.g. `brew`, `asdf`, 
 ## Recommended initial setup
 
 1. **Enable direnv (optional)**
-   - Install direnv: `brew install direnv` (macOS) or follow <https://direnv.net/>.
-   - Hook it into your shell, for example:
-     ```sh
-     echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
-     ```
-   - From the project root:
-     ```sh
-     direnv allow
-     ```
-     The provided `.envrc` creates project-scoped Python and Node environments (via direnv’s `layout` helpers) and prepends local `node_modules/.bin` directories to `PATH`. If you need custom secrets or overrides, place them in `.envrc.local`—it’s automatically sourced when present and stays outside version control.
+  - Install direnv: `brew install direnv` (macOS) or follow <https://direnv.net/>.
+  - Hook it into your shell, for example:
+    ```sh
+    echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
+    ```
+  - From the project root:
+    ```sh
+    direnv allow
+    ```
+    The provided `.envrc` creates project-scoped Python and Node environments (via direnv’s `layout` helpers) and prepends local `node_modules/.bin` directories to `PATH`. If you need custom secrets or overrides, place them in `.envrc.local`—it’s automatically sourced when present and stays outside version control.
 
 2. **Install JavaScript dependencies**
-   ```sh
-   cd webapp
-   npm install
-   ```
+  ```sh
+  cd webapp
+  npm install
+  ```
 
 3. **Install Python tooling**
-   ```sh
-   python3 -m pip install --upgrade pip
-   pip install esphome
-   ```
+  ```sh
+  python3 -m pip install --upgrade pip
+  pip install esphome
+  ```
 
 ## Working with git hooks
 
