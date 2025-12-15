@@ -8,9 +8,10 @@
 *.js text eol=lf
 *.css text eol=lf
 *.html text eol=lf
-*.md text
+*.md text eol=lf
 
 *.bat text eol=crlf
+*.cmd text eol=crlf
 
 *.png binary
 *.jpg binary
