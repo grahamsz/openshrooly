@@ -70,8 +70,8 @@
 4. **RGB LED:** Uses ESP32 RMT peripheral for WS2812 protocol
 5. **Display:** Waveshare 2.90inv2-r2 model with rotation set to 90°
 6. **Humidifier Control:** Via I2C at address 0x6C
-   - Register 0x00, Value 0x01: Turn ON
-   - Register 0x00, Value 0x00: Turn OFF
+  - Register 0x00, Value 0x01: Turn ON
+  - Register 0x00, Value 0x00: Turn OFF
 
 ## Peripheral Summary
 

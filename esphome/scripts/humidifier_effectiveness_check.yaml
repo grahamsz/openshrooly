@@ -20,8 +20,8 @@
         if (humidity_increase <= 0.0f) {
           id(humidity_not_rising_flag) = true;
           ESP_LOGW("humidifier_monitor",
-                   "⚠️  Humidifier ON for 2 minutes but humidity unchanged: %.1f%% → %.1f%% (change: %+.1f%%)",
-                   start_humidity, current_humidity, humidity_increase);
+                  "⚠️  Humidifier ON for 2 minutes but humidity unchanged: %.1f%% → %.1f%% (change: %+.1f%%)",
+                  start_humidity, current_humidity, humidity_increase);
           // Beep for warning
           id(alert_beep_warning).execute();
         }
@@ -29,15 +29,15 @@
         else if (humidity_increase < 1.0f) {
           id(humidity_not_rising_flag) = false;
           ESP_LOGI("humidifier_monitor",
-                   "ℹ️  Humidifier working slowly: %.1f%% → %.1f%% over 2 minutes (+%.1f%%)",
-                   start_humidity, current_humidity, humidity_increase);
+                  "ℹ️  Humidifier working slowly: %.1f%% → %.1f%% over 2 minutes (+%.1f%%)",
+                  start_humidity, current_humidity, humidity_increase);
         }
         // Clear alert for good increases
         else {
           id(humidity_not_rising_flag) = false;
           ESP_LOGI("humidifier_monitor",
-                   "Humidifier effective: %.1f%% → %.1f%% over 2 minutes (+%.1f%%)",
-                   start_humidity, current_humidity, humidity_increase);
+                  "Humidifier effective: %.1f%% → %.1f%% over 2 minutes (+%.1f%%)",
+                  start_humidity, current_humidity, humidity_increase);
         }
       } else {
         // Clear alert if humidifier is off

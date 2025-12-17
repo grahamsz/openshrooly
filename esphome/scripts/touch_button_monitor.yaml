@@ -46,7 +46,7 @@
               // Detect touch on 400+ jump
               if (jump > 400 && !button_pressed[btn]) {
                 ESP_LOGI("touch_monitor", "BUTTON %d PRESSED! Value: %.0f, Last: %.0f, Jump: %.0f",
-                         btn+1, value, last_value[btn], jump);
+                        btn+1, value, last_value[btn], jump);
                 button_pressed[btn] = true;
                 peak_value[btn] = value;  // Initialize peak with current value
 
@@ -89,7 +89,7 @@
                 // Log only occasionally while pressed to reduce spam
                 if (++pressed_log_counter[btn] >= 5) {  // Every second at 200ms interval
                   ESP_LOGD("touch_monitor", "Button %d pressed - Value: %.0f, Peak: %.0f, Drop: %.0f, Rise: %.0f",
-                           btn+1, value, peak_value[btn], drop_from_peak, rise_from_baseline);
+                          btn+1, value, peak_value[btn], drop_from_peak, rise_from_baseline);
                   pressed_log_counter[btn] = 0;
                 }
 
@@ -97,7 +97,7 @@
                 // Release if dropped 250+ from peak OR within 250 of baseline
                 if (drop_from_peak > 250 || rise_from_baseline < 250) {
                   ESP_LOGI("touch_monitor", "Button %d released. Value: %.0f, Peak: %.0f, Drop: %.0f, Rise: %.0f",
-                           btn+1, value, peak_value[btn], drop_from_peak, rise_from_baseline);
+                          btn+1, value, peak_value[btn], drop_from_peak, rise_from_baseline);
                   button_pressed[btn] = false;
                   peak_value[btn] = 0;  // Reset peak
                   pressed_log_counter[btn] = 0;  // Reset counter

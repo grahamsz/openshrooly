@@ -38,10 +38,10 @@
           id(heat_requested).publish_state(should_heat);
           if (should_heat) {
             ESP_LOGI("temp_control", "Heat requested - temp %.1f°C < target %.1f°C (hyst ±%.2f°C)",
-                     temp, target, hyst);
+                    temp, target, hyst);
           } else {
             ESP_LOGI("temp_control", "Heat request OFF - temp %.1f°C >= target %.1f°C (hyst ±%.2f°C)",
-                     temp, target, hyst);
+                    temp, target, hyst);
           }
         }
       }

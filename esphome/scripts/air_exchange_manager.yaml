@@ -29,7 +29,7 @@
             } else {
               time_str = String(run_sec) + "s";
             }
-            
+
             String msg = "ON @" + String((int)id(air_exchange_speed).state) + "% for " + time_str;
             id(air_exchange_status).publish_state(msg.c_str());
 
@@ -103,7 +103,7 @@
             } else {
               time_str = String(rest_sec) + "s";
             }
-            
+
             String msg = "OFF, " + time_str + " left";
             id(air_exchange_status).publish_state(msg.c_str());
 
@@ -141,7 +141,7 @@
                   } else {
                     time_str = String(remaining) + "s";
                   }
-                  
+
                   String msg = "OFF, " + time_str + " left";
                   id(air_exchange_status).publish_state(msg.c_str());
               - delay: 1s

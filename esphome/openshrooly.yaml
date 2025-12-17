@@ -134,7 +134,7 @@ interval:
 
   - interval: 30s # Every 30 seconds, run the water level calculator
     then:
-      - script.execute: water_level_calculator          
+      - script.execute: water_level_calculator
 
   # Watchdog: nudge SoftAP/DHCP if the STA link stays down
   - interval: 45s

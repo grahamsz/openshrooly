@@ -7,7 +7,7 @@ namespace esphome {
 namespace web_server {
 
 void write_row(AsyncResponseStream *stream, EntityBase *obj, const std::string &klass, const std::string &action,
-               const std::function<void(AsyncResponseStream &stream, EntityBase *obj)> &action_func = nullptr) {
+              const std::function<void(AsyncResponseStream &stream, EntityBase *obj)> &action_func = nullptr) {
   stream->print("<tr class=\"");
   stream->print(klass.c_str());
   if (obj->is_internal())

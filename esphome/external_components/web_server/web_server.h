@@ -104,11 +104,11 @@ class DeferredUpdateEventSource : public AsyncEventSource {
   struct DeferredEvent {
     friend class DeferredUpdateEventSource;
 
-   protected:
+  protected:
     void *source_;
     message_generator_t *message_generator_;
 
-   public:
+  public:
     DeferredEvent(void *source, message_generator_t *message_generator)
         : source_(source), message_generator_(message_generator) {}
     bool operator==(const DeferredEvent &test) const {
@@ -178,46 +178,46 @@ class WebServer : public Controller, public Component, public AsyncWebHandler {
 
 #if USE_WEBSERVER_VERSION == 1
   /** Set the URL to the CSS <link> that's sent to each client. Defaults to
-   * https://esphome.io/_static/webserver-v1.min.css
-   *
-   * @param css_url The url to the web server stylesheet.
-   */
+  * https://esphome.io/_static/webserver-v1.min.css
+  *
+  * @param css_url The url to the web server stylesheet.
+  */
   void set_css_url(const char *css_url);
 
   /** Set the URL to the script that's embedded in the index page. Defaults to
-   * https://esphome.io/_static/webserver-v1.min.js
-   *
-   * @param js_url The url to the web server script.
-   */
+  * https://esphome.io/_static/webserver-v1.min.js
+  *
+  * @param js_url The url to the web server script.
+  */
   void set_js_url(const char *js_url);
 #endif
 
 #ifdef USE_WEBSERVER_CSS_INCLUDE
   /** Set local path to the script that's embedded in the index page. Defaults to
-   *
-   * @param css_include Local path to web server script.
-   */
+  *
+  * @param css_include Local path to web server script.
+  */
   void set_css_include(const char *css_include);
 #endif
 
 #ifdef USE_WEBSERVER_JS_INCLUDE
   /** Set local path to the script that's embedded in the index page. Defaults to
-   *
-   * @param js_include Local path to web server script.
-   */
+  *
+  * @param js_include Local path to web server script.
+  */
   void set_js_include(const char *js_include);
 #endif
 
   /** Determine whether internal components should be displayed on the web server.
-   * Defaults to false.
-   *
-   * @param include_internal Whether internal components should be displayed.
-   */
+  * Defaults to false.
+  *
+  * @param include_internal Whether internal components should be displayed.
+  */
   void set_include_internal(bool include_internal) { include_internal_ = include_internal; }
   /** Set whether or not the webserver should expose the Log.
-   *
-   * @param expose_log.
-   */
+  *
+  * @param expose_log.
+  */
   void set_expose_log(bool expose_log) { this->expose_log_ = expose_log; }
 
   // ========== INTERNAL METHODS ==========
@@ -464,7 +464,7 @@ class WebServer : public Controller, public Component, public AsyncWebHandler {
   static std::string alarm_control_panel_all_json_generator(WebServer *web_server, void *source);
   /// Dump the alarm_control_panel state with its value as a JSON string.
   std::string alarm_control_panel_json(alarm_control_panel::AlarmControlPanel *obj,
-                                       alarm_control_panel::AlarmControlPanelState value, JsonDetail start_config);
+                                      alarm_control_panel::AlarmControlPanelState value, JsonDetail start_config);
 #endif
 
 #ifdef USE_EVENT

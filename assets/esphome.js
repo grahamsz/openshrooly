@@ -33,7 +33,7 @@ function hideListedElements(root) {
         hiddenInThisPass++;
         console.log(` -> Hid element matching "${searchText}": <${element.tagName.toLowerCase()} class="${element.className}">`);
         // Break the inner loop and move to the next element once a match is found
-        break; 
+        break;
       }
     }
   }
@@ -71,10 +71,10 @@ async function startScript() {
       hideListedElements(tableShadowRoot);
     }, 100); // Increased delay slightly for more stability
   });
-  
+
   // Run once at the start
   setTimeout(() => hideListedElements(tableShadowRoot), 150);
-  
+
   // Start observing for future changes
   observer.observe(tableShadowRoot, { childList: true, subtree: true });
   console.log('Persistent observer is now active.');
@@ -82,4 +82,3 @@ async function startScript() {
 
 // Run the script
 startScript();
-

@@ -224,6 +224,3 @@ sensor:
       sorting_weight: 40
     filters:
       - delta: 25.0
-
-
-

@@ -37,7 +37,7 @@ class OTARequestHandler : public AsyncWebHandler {
     // Captive portal can still perform OTA updates - check if request is from active captive portal
     // Note: global_captive_portal is the standard way components communicate in ESPHome
     return is_ota_request && captive_portal::global_captive_portal != nullptr &&
-           captive_portal::global_captive_portal->is_active();
+          captive_portal::global_captive_portal->is_active();
 #elif defined(USE_WEBSERVER_OTA_DISABLED)
     // OTA disabled for web_server and no captive portal compiled in
     return false;
@@ -101,7 +101,7 @@ void OTARequestHandler::ota_init_(const char *filename) {
 }
 
 void OTARequestHandler::handleUpload(AsyncWebServerRequest *request, const String &filename, size_t index,
-                                     uint8_t *data, size_t len, bool final) {
+                                    uint8_t *data, size_t len, bool final) {
   ota::OTAResponseTypes error_code = ota::OTA_RESPONSE_OK;
 
   if (index == 0 && !this->ota_backend_) {
@@ -130,7 +130,7 @@ void OTARequestHandler::handleUpload(AsyncWebServerRequest *request, const Strin
       ESP_LOGE(TAG, "Failed to create OTA backend");
 #ifdef USE_OTA_STATE_CALLBACK
       this->parent_->state_callback_.call_deferred(ota::OTA_ERROR, 0.0f,
-                                                   static_cast<uint8_t>(ota::OTA_RESPONSE_ERROR_UNKNOWN));
+                                                  static_cast<uint8_t>(ota::OTA_RESPONSE_ERROR_UNKNOWN));
 #endif
       return;
     }
@@ -172,7 +172,7 @@ void OTARequestHandler::handleUpload(AsyncWebServerRequest *request, const Strin
   // Finalize
   if (final) {
     ESP_LOGD(TAG, "OTA final chunk: index=%zu, len=%zu, total_read=%" PRIu32 ", contentLength=%zu", index, len,
-             this->ota_read_length_, request->contentLength());
+            this->ota_read_length_, request->contentLength());
 
     // For Arduino framework, the Update library tracks expected size from firmware header
     // If we haven't received enough data, calling end() will fail

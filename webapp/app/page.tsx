@@ -644,7 +644,7 @@ export default function Dashboard() {
       {/* Modals */}
       {modal.type === 'water' && (() => {
         const isCalibrated = entities['binary_sensor-water_calibrated']?.state === 'ON' ||
-                           entities['binary_sensor-water_calibrated']?.value === true
+                          entities['binary_sensor-water_calibrated']?.value === true
 
         return (
         <div className="modal-overlay" onClick={() => setModal({ type: null })}>

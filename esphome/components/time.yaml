@@ -11,8 +11,8 @@ time:
             auto now = id(sntp_time).now();
             if (now.is_valid()) {
               ESP_LOGI("time", "SNTP time sync successful: %04d-%02d-%02d %02d:%02d:%02d (LOCAL TIME)",
-                       now.year, now.month, now.day_of_month,
-                       now.hour, now.minute, now.second);
+                      now.year, now.month, now.day_of_month,
+                      now.hour, now.minute, now.second);
             } else {
               ESP_LOGI("time", "SNTP time sync attempted, but time not valid yet");
             }

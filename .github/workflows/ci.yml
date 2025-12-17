@@ -56,6 +56,12 @@ jobs:
           cache: "npm"
           cache-dependency-path: webapp/package-lock.json
 
+      - name: Run formatting checks
+        run: |
+          npx --yes eclint fix
+          git status --short
+          git diff --exit-code
+
       - name: Determine build ID
         id: build_id
         run: |
