@@ -49,7 +49,7 @@ export default function Dashboard() {
       }
 
       try {
-        const tz = await api.getSelect('timezone_select')
+        const tz = await api.getSelect('timezone')
         if (tz?.state) setTimezone(tz.state)
       } catch (e) {
         // Ignore errors during initial fetch - EventSource will populate data
@@ -72,7 +72,7 @@ export default function Dashboard() {
         setLastUpdate(new Date())
 
         // Update timezone from events
-        if (event.id === 'select-timezone_select') {
+        if (event.id === 'select-timezone') {
           setTimezone(event.state)
         }
       }
@@ -120,7 +120,7 @@ export default function Dashboard() {
 
   const handleTimezoneChange = async (tz: string) => {
     setTimezone(tz)
-    await handleSelectChange('timezone_select', tz)
+    await handleSelectChange('timezone', tz)
   }
 
   const handleOtaUpload = async () => {

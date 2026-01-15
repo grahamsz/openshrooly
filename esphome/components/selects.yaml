@@ -6,7 +6,7 @@
 select:
   # Timezone selector with automatic DST handling
   - platform: template
-    id: timezone_select
+    id: timezone
     name: "Timezone"
     icon: mdi:map-clock-outline
     entity_category: config
