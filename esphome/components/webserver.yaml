@@ -7,9 +7,6 @@ web_server:
   js_include: ../assets/esphome.js
   app_html_include: ../webapp/out/index.html
   sorting_groups:
-    - id: grp_system
-      name: "System"
-      sorting_weight: 5
     - id: grp_air
       name: "Air Exchange"
       sorting_weight: 10

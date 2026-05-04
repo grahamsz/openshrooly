@@ -146,12 +146,6 @@ globals:
     restore_value: no
     initial_value: '""'
 
-  # Device identity helpers
-  - id: device_name_sequence
-    type: uint32_t
-    restore_value: yes
-    initial_value: '0'
-
   # UI globals
   - id: current_ui_page
     type: int
@@ -181,3 +175,4 @@ globals:
   - id: button_4_state
     type: bool
     initial_value: 'false'
+

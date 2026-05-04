@@ -429,17 +429,6 @@ text_sensor:
 
 button:
   - platform: template
-    id: device_name_next
-    name: "Next Device Name"
-    icon: mdi:shuffle-variant
-    entity_category: config
-    web_server:
-      sorting_group_id: grp_system
-      sorting_weight: 2
-    on_press:
-      - script.execute: device_name_generate
-
-  - platform: template
     name: "Beeper Test"
     icon: mdi:volume-high
     web_server:

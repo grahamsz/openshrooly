@@ -51,7 +51,6 @@ esphome:
       - script.wait: wifi_ap_bounce
       - delay: 4s
       - script.execute: wifi_ap_boot_verify
-      - script.execute: ensure_device_name
 
       # Wait until humidity is valid
       - wait_until:
@@ -107,7 +106,6 @@ captive_portal:
 
 # Include text sensors early so scripts can reference them
 <<: !include components/text_sensors.yaml
-<<: !include components/texts.yaml
 
 # Scripts will be loaded after components to ensure all IDs are available
 
