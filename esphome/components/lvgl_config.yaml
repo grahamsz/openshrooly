@@ -20,6 +20,7 @@ font:
 lvgl:
   displays:
     - my_display
+  rotation: 90°
 
   # Buffer settings - reduced to save memory
   buffer_size: 25%

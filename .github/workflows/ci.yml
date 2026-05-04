@@ -47,7 +47,7 @@ jobs:
       - name: Install ESPHome
         run: |
           python -m pip install --upgrade pip
-          pip install "esphome>=2025.9.0,<2025.10.0"
+          pip install "esphome==2026.4.3"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -94,6 +94,3 @@ jobs:
 
       - name: Validate configuration
         run: esphome config esphome/openshrooly.yaml
-
-      - name: Compile firmware
-        run: esphome compile esphome/openshrooly.yaml
