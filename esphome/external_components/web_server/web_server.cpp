@@ -423,8 +423,8 @@ void WebServer::setup() {
       return;
     char buf[32];
     auto uptime = static_cast<uint32_t>(millis_64() / 1000);
-    buf_append_printf(buf, sizeof(buf), 0, "{\"uptime\":%" PRIu32 "}", uptime);
-    this->events_.try_send_nodefer(buf, "ping", millis(), 30000);
+    size_t len = buf_append_printf(buf, sizeof(buf), 0, "{\"uptime\":%" PRIu32 "}", uptime);
+    this->events_.try_send_nodefer(buf, len, "ping", millis(), 30000);
   });
 }
 void WebServer::loop() {
@@ -442,8 +442,7 @@ void WebServer::loop() {
 void WebServer::on_log(uint8_t level, const char *tag, const char *message, size_t message_len) {
   (void) level;
   (void) tag;
-  (void) message_len;
-  this->events_.try_send_nodefer(message, "log", millis());
+  this->events_.try_send_nodefer(message, message_len, "log", millis());
 }
 #endif
 

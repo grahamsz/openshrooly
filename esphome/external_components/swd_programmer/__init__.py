@@ -45,7 +45,12 @@ PROGRAM_ACTION_SCHEMA = cv.Any(
     cv.Schema({cv.Required(CONF_ID): cv.use_id(SWDProgrammer)}),
 )
 
-@automation.register_action("swd_programmer.program", swd_ns.class_("ProgramAction", automation.Action), PROGRAM_ACTION_SCHEMA)
+@automation.register_action(
+    "swd_programmer.program",
+    swd_ns.class_("ProgramAction", automation.Action),
+    PROGRAM_ACTION_SCHEMA,
+    synchronous=True,
+)
 async def swd_programmer_program_to_code(config, action_id, template_arg, args):
     # Resolve the parent SWDProgrammer instance regardless of schema form
     if isinstance(config, dict):

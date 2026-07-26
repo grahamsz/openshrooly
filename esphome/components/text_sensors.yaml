@@ -66,7 +66,7 @@ text_sensor:
     icon: mdi:wifi
     update_interval: 5s
     lambda: |-
-      if (WiFi.isConnected()) {
+      if (wifi::global_wifi_component->is_connected()) {
         return {"Station"};
       } else {
         return {"Access Point"};
@@ -78,8 +78,9 @@ text_sensor:
     icon: mdi:wifi-marker
     update_interval: 5s
     lambda: |-
-      if (WiFi.isConnected()) {
-        return {WiFi.SSID().c_str()};
+      if (wifi::global_wifi_component->is_connected()) {
+        char ssid[wifi::SSID_BUFFER_SIZE];
+        return {std::string(wifi::global_wifi_component->wifi_ssid_to(ssid))};
       } else {
         return {"OpenShrooly"};
       }
@@ -90,8 +91,14 @@ text_sensor:
     icon: mdi:ip-network
     update_interval: 5s
     lambda: |-
-      if (WiFi.isConnected()) {
-        return {WiFi.localIP().toString().c_str()};
+      if (wifi::global_wifi_component->is_connected()) {
+        auto addresses = wifi::global_wifi_component->wifi_sta_ip_addresses();
+        if (addresses.empty()) {
+          return {"--"};
+        }
+        char ip[network::IP_ADDRESS_BUFFER_SIZE];
+        addresses[0].str_to(ip);
+        return {std::string(ip)};
       } else {
         return {"192.168.4.1"};
       }

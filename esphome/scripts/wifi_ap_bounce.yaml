@@ -18,5 +18,7 @@
     - lambda: |-
         ESP_LOGI("wifi", "SoftAP bounce complete");
         id(ap_restart_in_progress) = false;
-        id(ap_status_text) = "AP ready";
+        id(ap_status_text) = wifi::global_wifi_component->is_connected()
+                                 ? "Wi-Fi connected"
+                                 : "AP ready";
     - component.update: my_display

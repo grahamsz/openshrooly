@@ -1,5 +1,5 @@
 substitutions:
-  device_version: "0.9"
+  device_version: "0.9.1"
 
 esphome:
   name: openshrooly
@@ -8,9 +8,8 @@ esphome:
   project:
     name: grahamsz.openshrooly
     version: ${device_version}
-  platformio_options:
-    build_flags:
-      - -Wno-cpp  # Suppress preprocessor warnings (including deprecation warnings)
+  build_flags:
+    - -Wno-cpp  # Suppress preprocessor warnings (including deprecation warnings)
 
   on_boot:
     priority: 600  # Very early boot
@@ -96,6 +95,8 @@ wifi:
 
   on_connect:
     then:
+      - lambda: |-
+          id(ap_status_text) = "Wi-Fi connected";
       - component.update: my_display
 
   on_disconnect:
@@ -140,7 +141,7 @@ interval:
       - lambda: |-
           const uint32_t now = millis();
 
-          if (WiFi.isConnected()) {
+          if (wifi::global_wifi_component->is_connected()) {
             return;
           }
 
@@ -149,34 +150,32 @@ interval:
             return;
           }
 
-          IPAddress ap_ip = WiFi.softAPIP();
+          auto ap_ip = wifi::global_wifi_component->wifi_soft_ap_ip();
           const uint32_t elapsed = now - id(ap_last_restart_ms);
-          const bool ip_expected = (ap_ip[0] == 192 && ap_ip[1] == 168 && ap_ip[2] == 4 && ap_ip[3] == 1);
+          const bool ip_expected = ap_ip == network::IPAddress(192, 168, 4, 1);
 
           if (ip_expected) {
             return;
           }
 
           if (elapsed < 30000) {
+            char ap_ip_str[network::IP_ADDRESS_BUFFER_SIZE];
+            ap_ip.str_to(ap_ip_str);
             ESP_LOGI(
               "wifi",
-              "SoftAP IP %u.%u.%u.%u seen %ums after last restart; waiting before retry.",
-              static_cast<unsigned int>(ap_ip[0]),
-              static_cast<unsigned int>(ap_ip[1]),
-              static_cast<unsigned int>(ap_ip[2]),
-              static_cast<unsigned int>(ap_ip[3]),
+              "SoftAP IP %s seen %ums after last restart; waiting before retry.",
+              ap_ip_str,
               static_cast<unsigned int>(elapsed)
             );
             return;
           }
 
+          char ap_ip_str[network::IP_ADDRESS_BUFFER_SIZE];
+          ap_ip.str_to(ap_ip_str);
           ESP_LOGW(
             "wifi",
-            "SoftAP IP unhealthy (%u.%u.%u.%u); re-running restart helper.",
-            static_cast<unsigned int>(ap_ip[0]),
-            static_cast<unsigned int>(ap_ip[1]),
-            static_cast<unsigned int>(ap_ip[2]),
-            static_cast<unsigned int>(ap_ip[3])
+            "SoftAP IP unhealthy (%s); re-running restart helper.",
+            ap_ip_str
           );
 
           id(wifi_ap_bounce).execute();
@@ -242,7 +241,7 @@ interval:
               return std::string("Restarting AP...");
             }
 
-            if (WiFi.isConnected()) {
+            if (wifi::global_wifi_component->is_connected()) {
               return std::string("Connected");
             }
 
@@ -255,8 +254,14 @@ interval:
               return std::string("--.--.--.--");
             }
 
-            if (WiFi.isConnected()) {
-              return WiFi.localIP().toString().c_str();
+            if (wifi::global_wifi_component->is_connected()) {
+              auto addresses = wifi::global_wifi_component->wifi_sta_ip_addresses();
+              if (addresses.empty()) {
+                return std::string("--.--.--.--");
+              }
+              char ip[network::IP_ADDRESS_BUFFER_SIZE];
+              addresses[0].str_to(ip);
+              return std::string(ip);
             }
 
             return std::string("192.168.4.1");

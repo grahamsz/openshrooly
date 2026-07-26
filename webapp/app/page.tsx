@@ -619,7 +619,7 @@ export default function Dashboard() {
         <div className="card card-settings" onClick={() => setModal({ type: 'settings' })}>
           <div className="card-icon">⚙️</div>
           <div className="card-label">Settings</div>
-          <div className="card-value">v0.9</div>
+          <div className="card-value">v0.9.1</div>
           <div className="card-detail">System & Network</div>
         </div>
       </div>
@@ -1317,7 +1317,7 @@ export default function Dashboard() {
                 <div className="settings-info">
                   <div className="info-row">
                     <span className="info-label">Version:</span>
-                    <span className="info-value">0.9</span>
+                    <span className="info-value">0.9.1</span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Voltage:</span>

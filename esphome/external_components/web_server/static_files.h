@@ -29,6 +29,8 @@ extern const uint8_t STATIC_FILE_5_DATA[];
 extern const size_t STATIC_FILE_5_SIZE;
 extern const uint8_t STATIC_FILE_6_DATA[];
 extern const size_t STATIC_FILE_6_SIZE;
+extern const uint8_t STATIC_FILE_7_DATA[];
+extern const size_t STATIC_FILE_7_SIZE;
 
 extern const StaticFile STATIC_FILES[];
 extern const size_t STATIC_FILES_COUNT;

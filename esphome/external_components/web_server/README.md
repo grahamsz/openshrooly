@@ -76,25 +76,12 @@ The script will:
 - Create a lookup table for the web server to find files by URL
 - Output compression statistics
 
-### 4. Update File List
+### 4. Commit the Generated Files
 
-When Next.js rebuilds with different chunk hashes, update the file list in `embed_static_files.py`:
-
-```python
-STATIC_FILES = {
-    "css": [
-        "_next/static/css/ea5220eeb0d2cb40.css",  # Update hash here
-    ],
-    "js": [
-        "_next/static/chunks/webpack-060329e99419b364.js",  # Update hashes
-        "_next/static/chunks/4bd1b696-c023c6e3521b1417.js",
-        "_next/static/chunks/255-0c3faaf82bb76988.js",
-        "_next/static/chunks/main-app-2d64801452f356c9.js",
-        "_next/static/chunks/app/page-b871aa359255909d.js",
-        "_next/static/chunks/polyfills-42372ed130431b0a.js",
-    ],
-}
-```
+The embedder reads `webapp/out/index.html` and embeds every local asset it
+references. This means Next.js chunk hashes require no manual maintenance. Run
+the embed step after every webapp build and commit the resulting
+`static_files.h` and `static_files.cpp` alongside the dashboard change.
 
 ### 5. Compile and Upload
 

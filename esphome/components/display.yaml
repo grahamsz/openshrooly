@@ -10,7 +10,8 @@ font:
 
 # Background image (not used with LVGL)
 image:
-  - file: "images/background.bmp"
+  - platform: file
+    file: "images/background.bmp"
     id: background
     type: BINARY
 

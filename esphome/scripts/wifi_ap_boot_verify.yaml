@@ -4,19 +4,25 @@
     - if:
         condition:
           lambda: |-
-            IPAddress ap_ip = WiFi.softAPIP();
-            return (ap_ip[0] == 192 && ap_ip[1] == 168 && ap_ip[2] == 4 && ap_ip[3] == 1);
+            auto ap_ip = wifi::global_wifi_component->wifi_soft_ap_ip();
+            return ap_ip == network::IPAddress(192, 168, 4, 1);
         then:
           - lambda: |-
-              IPAddress ap_ip = WiFi.softAPIP();
-              ESP_LOGI("wifi", "SoftAP IP verified after boot: %s", ap_ip.toString().c_str());
-              id(ap_status_text) = "AP ready";
+              auto ap_ip = wifi::global_wifi_component->wifi_soft_ap_ip();
+              char ap_ip_str[network::IP_ADDRESS_BUFFER_SIZE];
+              ap_ip.str_to(ap_ip_str);
+              ESP_LOGI("wifi", "SoftAP IP verified after boot: %s", ap_ip_str);
+              id(ap_status_text) = wifi::global_wifi_component->is_connected()
+                                       ? "Wi-Fi connected"
+                                       : "AP ready";
               id(ap_restart_in_progress) = false;
           - component.update: my_display
         else:
           - lambda: |-
-              IPAddress ap_ip = WiFi.softAPIP();
-              ESP_LOGW("wifi", "SoftAP IP invalid after boot (%s); restarting DHCP.", ap_ip.toString().c_str());
+              auto ap_ip = wifi::global_wifi_component->wifi_soft_ap_ip();
+              char ap_ip_str[network::IP_ADDRESS_BUFFER_SIZE];
+              ap_ip.str_to(ap_ip_str);
+              ESP_LOGW("wifi", "SoftAP IP invalid after boot (%s); restarting DHCP.", ap_ip_str);
               id(ap_restart_in_progress) = true;
               id(ap_last_restart_ms) = millis();
               id(ap_status_text) = "Restarting AP...";
@@ -24,9 +30,11 @@
           - script.execute: wifi_ap_restart
           - script.wait: wifi_ap_restart
           - lambda: |-
-              IPAddress ap_ip = WiFi.softAPIP();
+              auto ap_ip = wifi::global_wifi_component->wifi_soft_ap_ip();
+              char ap_ip_str[network::IP_ADDRESS_BUFFER_SIZE];
+              ap_ip.str_to(ap_ip_str);
               id(ap_restart_in_progress) = false;
               id(ap_last_restart_ms) = millis();
               id(ap_status_text) = "AP DHCP restarted";
-              ESP_LOGI("wifi", "AP DHCP restarted; SoftAP IP now %s", ap_ip.toString().c_str());
+              ESP_LOGI("wifi", "AP DHCP restarted; SoftAP IP now %s", ap_ip_str);
           - component.update: my_display

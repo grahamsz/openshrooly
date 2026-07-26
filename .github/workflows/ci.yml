@@ -47,7 +47,7 @@ jobs:
       - name: Install ESPHome
         run: |
           python -m pip install --upgrade pip
-          pip install "esphome==2026.4.3"
+          pip install "esphome==2026.7.1"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -83,13 +83,14 @@ jobs:
           cd esphome
           python3 external_components/web_server/embed_static_files.py ../webapp/out external_components/web_server/static_files.h external_components/web_server/static_files.cpp
 
-      - name: Flag embedded asset drift
+      - name: Verify embedded assets are current
         run: |
           if ! git diff --quiet -- esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp; then
-            echo "::warning::Embedded static files differ from repository state. If this persists locally, rerun the embed script and commit the results."
+            echo "::error::Embedded dashboard assets differ from repository state. Rerun the embed script and commit the generated files."
             git --no-pager diff --stat -- esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp
             git --no-pager diff -U3 -- esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp | head -n 200
             git status --short esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp
+            exit 1
           fi
 
       - name: Validate configuration
