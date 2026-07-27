@@ -1,0 +1,58 @@
+.program capacitive
+
+; Measure one electrode without CPU timing dependencies. The state machine
+; repeatedly releases the pin so its pull-up can charge it, observes whether it
+; reached a logic high, and then drives it low before the next cycle. Y bounds
+; the measurement time; X counts completed charge/discharge cycles.
+start:
+    set y, 1
+    in y, 1
+    in null, 11
+    mov y, isr
+    mov x, ~null
+
+sample:
+    set pindirs, 0
+
+busy:
+    jmp pin, high
+    jmp y--, busy
+    jmp done
+
+high:
+    set pindirs, 1
+    set pins, 0
+    jmp y--, dec1
+    jmp done
+dec1:
+    jmp y--, dec2
+    jmp done
+dec2:
+    jmp y--, dec3
+    jmp done
+dec3:
+    jmp y--, dec4
+    jmp done
+dec4:
+    jmp y--, dec5
+    jmp done
+dec5:
+    jmp x--, sample
+
+done:
+    ; The CPU complements this descending counter to obtain an increasing
+    ; unsigned reading and publishes it directly over I2C.
+    mov isr, x
+    push block
+
+% c-sdk {
+// Load one copy of the program into a state machine and bind all pin
+// operations, including the conditional jump, to a single electrode.
+static inline void capacitive_program_init(PIO pio, uint sm, uint offset, uint pin) {
+    pio_sm_config config = capacitive_program_get_default_config(offset);
+    sm_config_set_set_pins(&config, pin, 1);
+    sm_config_set_jmp_pin(&config, pin);
+    pio_gpio_init(pio, pin);
+    pio_sm_init(pio, sm, offset, &config);
+}
+%}

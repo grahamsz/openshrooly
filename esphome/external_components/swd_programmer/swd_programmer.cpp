@@ -114,11 +114,13 @@ void SWDProgrammer::task_body() {
     if (this->status_sensor_)
       this->status_sensor_->publish_state("Success");
   } else {
-    ESP_LOGE(TAG, "SWD programming failed (bad IDCODE 0x%08X)", id);
+    ESP_LOGE(
+      TAG,
+      "SWD programming failed (bad IDCODE 0x%08lX)",
+      static_cast<unsigned long>(id)
+    );
     if (this->status_sensor_)
       this->status_sensor_->publish_state("Error");
-  
-
   }
 
   vTaskDelay(100);  // yield ~100 ms so logs can propagate

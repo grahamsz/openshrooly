@@ -1,119 +1,149 @@
 # ========================================================================
-# LIGHT SETTINGS SCREEN
-# Configure lighting schedule and intensity
+# LIGHT SETTINGS
 # ========================================================================
 
 - id: elightsettings
   bg_color: paper_white
   widgets:
-    # Title
     - label:
-        text: "Light Settings"
+        text: "Lighting"
         align: TOP_MID
         y: 2
         text_font: font1
 
-    # Sunrise hour setting
-    - obj:
-        id: light_sunrise_container
-        x: 10
-        y: 20
-        width: 276
-        height: 16
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "Sunrise:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: light_sunrise_value_label
-              text: "--:00"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
+    - label:
+        id: light_sunrise_carat
+        text: ">"
+        align: TOP_LEFT
+        x: 5
+        y: 18
+        text_font: font1
+    - label:
+        text: "Sunrise"
+        align: TOP_LEFT
+        x: 17
+        y: 18
+        text_font: font1
+    - label:
+        id: light_sunrise_value
+        text: "--:00"
+        align: TOP_RIGHT
+        x: -10
+        y: 18
+        text_font: font1
 
-    # Duration setting
-    - obj:
-        id: light_duration_container
-        x: 10
-        y: 37
-        width: 276
-        height: 16
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "Duration:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: light_duration_value_label
-              text: "-- hrs"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
+    - label:
+        id: light_duration_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 31
+        text_font: font1
+    - label:
+        text: "Duration"
+        align: TOP_LEFT
+        x: 17
+        y: 31
+        text_font: font1
+    - label:
+        id: light_duration_value
+        text: "--.-- hrs"
+        align: TOP_RIGHT
+        x: -10
+        y: 31
+        text_font: font1
 
-    # White intensity setting
-    - obj:
-        id: light_white_container
-        x: 10
-        y: 54
-        width: 276
-        height: 16
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "White:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: light_white_value_label
-              text: "---- lux"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
+    - label:
+        id: light_white_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 44
+        text_font: font1
+    - label:
+        text: "White"
+        align: TOP_LEFT
+        x: 17
+        y: 44
+        text_font: font1
+    - label:
+        id: light_white_value
+        text: "---- lux"
+        align: TOP_RIGHT
+        x: -10
+        y: 44
+        text_font: font1
 
-    # RGB display
-    - obj:
-        id: light_rgb_container
-        x: 10
-        y: 71
-        width: 276
-        height: 16
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "RGB:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: light_rgb_value_label
-              text: "R:-- G:-- B:--"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
+    - label:
+        id: light_red_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 57
+        text_font: font1
+    - label:
+        text: "Red"
+        align: TOP_LEFT
+        x: 17
+        y: 57
+        text_font: font1
+    - label:
+        id: light_red_value
+        text: "---%"
+        align: TOP_RIGHT
+        x: -10
+        y: 57
+        text_font: font1
 
-    # Selection indicator
-    - obj:
-        id: light_selection_box
-        x: 8
-        y: 20
-        width: 280
-        height: 16
-        border_width: 2
-        border_color: paper_black
-        bg_opa: 0%
+    - label:
+        id: light_green_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 70
+        text_font: font1
+    - label:
+        text: "Green"
+        align: TOP_LEFT
+        x: 17
+        y: 70
+        text_font: font1
+    - label:
+        id: light_green_value
+        text: "---%"
+        align: TOP_RIGHT
+        x: -10
+        y: 70
+        text_font: font1
 
-    # Button Bar - Navigation buttons (20px tall, no borders)
+    - label:
+        id: light_blue_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 83
+        text_font: font1
+    - label:
+        text: "Blue"
+        align: TOP_LEFT
+        x: 17
+        y: 83
+        text_font: font1
+    - label:
+        id: light_blue_value
+        text: "---%"
+        align: TOP_RIGHT
+        x: -10
+        y: 83
+        text_font: font1
+
     - obj:
         x: 0
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
@@ -121,40 +151,41 @@
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 75
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
-              id: light_btn2_label
               text: "-"
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 150
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
-              id: light_btn3_label
               text: "+"
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 225
         y: 107
         width: 71
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:

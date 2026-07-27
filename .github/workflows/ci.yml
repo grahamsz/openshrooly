@@ -49,6 +49,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install "esphome==2026.7.1"
 
+      - name: Install RP2040 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-arm-none-eabi libnewlib-arm-none-eabi
+
+      - name: Build RP2040 coprocessor
+        run: |
+          cmake -S coprocessor -B coprocessor/build -G Ninja \
+            -DPICO_SDK_FETCH_FROM_GIT=ON \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build coprocessor/build --parallel
+          python3 coprocessor/embed_firmware.py \
+            --check-source \
+            esphome/external_components/swd_programmer/firmware.h
+          python3 coprocessor/embed_firmware.py \
+            coprocessor/build/src/openshrooly_coprocessor.bin \
+            esphome/external_components/swd_programmer/firmware.h
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -59,11 +77,7 @@ jobs:
       - name: Determine build ID
         id: build_id
         run: |
-          SHA="${{ github.sha }}"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            SHA="${{ github.event.pull_request.head.sha }}"  # head SHA for PRs
-          fi
-          BUILD_ID="${SHA:0:12}"
+          BUILD_ID="openshrooly"
           echo "Using build id: ${BUILD_ID}"
           echo "build_id=${BUILD_ID}" >> "$GITHUB_OUTPUT"
 
@@ -95,3 +109,6 @@ jobs:
 
       - name: Validate configuration
         run: esphome config esphome/openshrooly.yaml
+
+      - name: Compile firmware
+        run: esphome compile esphome/openshrooly.yaml

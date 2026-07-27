@@ -1,107 +1,101 @@
 # ========================================================================
-# AIR EXCHANGE SETTINGS SCREEN
-# Configure fan cycles and speed
+# AIR EXCHANGE SETTINGS
 # ========================================================================
 
 - id: fairsettings
   bg_color: paper_white
   widgets:
-    # Title
     - label:
-        text: "Air Exchange Settings"
+        text: "Air Exchange"
         align: TOP_MID
         y: 2
         text_font: font1
-
-    # Current fan status
     - label:
         id: air_status_label
         text: "Fan: OFF (--- RPM)"
         align: TOP_LEFT
         x: 10
-        y: 20
+        y: 18
         text_font: font1
 
-    # Period setting
-    - obj:
-        id: air_period_container
+    - label:
+        id: air_period_carat
+        text: ">"
+        align: TOP_LEFT
+        x: 5
+        y: 38
+        text_font: font1
+    - label:
+        text: "Period"
+        align: TOP_LEFT
+        x: 17
+        y: 38
+        text_font: font1
+    - label:
+        id: air_period_value
+        text: "--- min"
+        align: TOP_RIGHT
+        x: -10
+        y: 38
+        text_font: font1
+
+    - label:
+        id: air_duration_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 55
+        text_font: font1
+    - label:
+        text: "Run duration"
+        align: TOP_LEFT
+        x: 17
+        y: 55
+        text_font: font1
+    - label:
+        id: air_duration_value
+        text: "--- sec"
+        align: TOP_RIGHT
+        x: -10
+        y: 55
+        text_font: font1
+
+    - label:
+        id: air_speed_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 72
+        text_font: font1
+    - label:
+        text: "Fan speed"
+        align: TOP_LEFT
+        x: 17
+        y: 72
+        text_font: font1
+    - label:
+        id: air_speed_value
+        text: "---%"
+        align: TOP_RIGHT
+        x: -10
+        y: 72
+        text_font: font1
+
+    - label:
+        id: air_next_cycle_label
+        text: "Next cycle: --"
+        align: TOP_LEFT
         x: 10
-        y: 37
-        width: 276
-        height: 16
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "Period:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: air_period_value_label
-              text: "-- min"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
+        y: 89
+        text_font: font1
 
-    # Run duration setting
-    - obj:
-        id: air_duration_container
-        x: 10
-        y: 54
-        width: 276
-        height: 16
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "Run:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: air_duration_value_label
-              text: "-- sec"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
-
-    # Fan speed setting
-    - obj:
-        id: air_speed_container
-        x: 10
-        y: 71
-        width: 276
-        height: 16
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "Speed:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: air_speed_value_label
-              text: "---%"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
-
-    # Selection indicator
-    - obj:
-        id: air_selection_box
-        x: 8
-        y: 37
-        width: 280
-        height: 16
-        border_width: 2
-        border_color: paper_black
-        bg_opa: 0%
-
-    # Button Bar - Navigation buttons (20px tall, no borders)
     - obj:
         x: 0
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
@@ -109,40 +103,41 @@
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 75
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
-              id: air_btn2_label
               text: "-"
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 150
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
-              id: air_btn3_label
               text: "+"
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 225
         y: 107
         width: 71
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:

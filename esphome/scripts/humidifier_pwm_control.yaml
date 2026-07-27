@@ -1,62 +1,62 @@
 # ========================================================================
 # HUMIDIFIER PWM CONTROL SCRIPT
-# Implements 8Hz PWM control for the humidifier fan using I2C commands
-# Duty cycle is based on the humidifier_speed setting (50-100%)
+# Sends the target duty to the coprocessor, which generates the 8Hz PWM.
 # ========================================================================
 
 - id: humidifier_pwm_control
   mode: restart
+  parameters:
+    requested_duty: float
   then:
-  - lambda: |-
-      ESP_LOGI("humidifier_pwm", "🔵 PWM control started - flag is ON");
-  - while:
-      condition:
-        lambda: 'return id(humidifier_on_flag);'
-      then:
-        - lambda: |-
-            // Get the speed setting (50-100%)
-            float speed_percent = id(humidifier_speed).state;
+    - lambda: |-
+        float requested = id(humidifier_on_flag) ? requested_duty : 0.0f;
+        requested = fmaxf(0.0f, fminf(100.0f, requested));
+        id(humidifier_command_duty) =
+          static_cast<uint8_t>(lroundf(requested));
+        id(humidifier_command_succeeded) = false;
 
-            // Calculate on/off times for 8Hz (125ms period)
-            int on_time_ms = (int)(125.0f * speed_percent / 100.0f);
-            int off_time_ms = 125 - on_time_ms;
+    # The RP2040 may still be coming out of reset when the first control
+    # decision arrives. Retry a NACK briefly instead of leaving logical and
+    # physical fan state out of sync until somebody changes a setting.
+    - repeat:
+        count: 4
+        then:
+          - if:
+              condition:
+                lambda: 'return !id(humidifier_command_succeeded);'
+              then:
+                - lambda: |-
+                    const uint8_t duty = id(humidifier_command_duty);
+                    uint8_t data[2] = {0x18, duty};
+                    const bool error = id(bus_a).write(0x6C, data, sizeof(data));
+                    id(humidifier_command_succeeded) = !error;
 
-            // Turn on the humidifier fan via I2C using copro_bus
-            id(copro_bus).execute(0x6C, 0x00, 0x01, 2, 0);
-            if (id(copro_last_error)) {
-              ESP_LOGW("humidifier_pwm", "❌ I2C write FAILED for humidifier ON");
-            }
+                    if (error) {
+                      ESP_LOGW(
+                        "humidifier_pwm",
+                        "Coprocessor rejected %u%% duty command; retrying",
+                        duty
+                      );
+                    }
+                - if:
+                    condition:
+                      lambda: 'return !id(humidifier_command_succeeded);'
+                    then:
+                      - delay: 250ms
 
-            // Keep on for the calculated duration
-            id(humidifier_pwm_on_time) = on_time_ms;
-
-        - delay: !lambda 'return id(humidifier_pwm_on_time);'
-
-        - lambda: |-
-            // Only turn off if we're doing PWM (not 100% duty)
-            float speed_percent = id(humidifier_speed).state;
-            if (speed_percent < 100.0f && id(humidifier_on_flag)) {
-              // Turn off the humidifier fan via I2C using copro_bus
-              id(copro_bus).execute(0x6C, 0x00, 0x00, 2, 0);
-              if (id(copro_last_error)) {
-                ESP_LOGW("humidifier_pwm", "❌ I2C write FAILED for humidifier OFF");
-              }
-
-              // Calculate off time
-              int off_time_ms = 125 - (int)(125.0f * speed_percent / 100.0f);
-              id(humidifier_pwm_off_time) = off_time_ms;
-            } else {
-              // If 100%, no off time
-              id(humidifier_pwm_off_time) = 0;
-            }
-
-        - delay: !lambda 'return id(humidifier_pwm_off_time);'
-
-  # When loop exits (humidifier_on_flag = false), ensure fan is OFF
-  - lambda: |-
-      // Always turn off when stopping
-      ESP_LOGI("humidifier_pwm", "⚫ PWM control stopping - turning fan OFF");
-      id(copro_bus).execute(0x6C, 0x00, 0x00, 2, 0);
-      if (id(copro_last_error)) {
-        ESP_LOGW("humidifier_pwm", "❌ I2C write FAILED for final OFF command");
-      }
+    - lambda: |-
+        const uint8_t duty = id(humidifier_command_duty);
+        if (id(humidifier_command_succeeded)) {
+          id(i2c_failure_count) = 0;
+          ESP_LOGI("humidifier_pwm", "Coprocessor duty set to %u%%", duty);
+        } else {
+          id(i2c_failure_count)++;
+          ESP_LOGE(
+            "humidifier_pwm",
+            "Coprocessor did not accept %u%% duty after 4 attempts",
+            duty
+          );
+          if (id(i2c_failure_count) == 3) {
+            id(alert_beep_critical).execute();
+          }
+        }

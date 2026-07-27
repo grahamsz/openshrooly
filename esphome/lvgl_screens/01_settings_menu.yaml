@@ -1,65 +1,66 @@
 # ========================================================================
-# SETTINGS MENU - Main settings navigation screen
-# Scrollable list of configuration options
+# SETTINGS MENU
 # ========================================================================
 
 - id: bsettingsmenu
   bg_color: paper_white
   widgets:
-    # Title
     - label:
-        text: "Settings Menu"
+        text: "Settings"
         align: TOP_MID
         y: 2
         text_font: font1
 
-    # Menu items list (simple labels for now, will add selection later)
     - label:
         id: menu_temp_item
         text: "> Temperature"
         align: TOP_LEFT
         x: 10
-        y: 20
+        y: 18
         text_font: font1
-
     - label:
         id: menu_humidity_item
         text: "  Humidity"
         align: TOP_LEFT
         x: 10
-        y: 32
+        y: 30
         text_font: font1
-
     - label:
         id: menu_light_item
-        text: "  Light"
+        text: "  Lighting"
         align: TOP_LEFT
         x: 10
-        y: 44
+        y: 42
         text_font: font1
-
     - label:
         id: menu_air_item
         text: "  Air Exchange"
         align: TOP_LEFT
         x: 10
-        y: 56
+        y: 54
         text_font: font1
-
     - label:
-        id: menu_system_item
-        text: "  System Info"
+        id: menu_water_item
+        text: "  Water Calibration"
         align: TOP_LEFT
         x: 10
-        y: 68
+        y: 66
+        text_font: font1
+    - label:
+        id: menu_system_item
+        text: "  System"
+        align: TOP_LEFT
+        x: 10
+        y: 78
         text_font: font1
 
-    # Button Bar - Navigation buttons (20px tall)
     - obj:
         x: 0
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
@@ -67,12 +68,13 @@
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 75
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
@@ -80,12 +82,13 @@
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 150
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
@@ -93,12 +96,13 @@
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 225
         y: 107
         width: 71
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:

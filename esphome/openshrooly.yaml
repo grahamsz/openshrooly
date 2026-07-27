@@ -1,5 +1,5 @@
 substitutions:
-  device_version: "0.9.1"
+  device_version: "1.0.0"
 
 esphome:
   name: openshrooly
@@ -23,7 +23,14 @@ esphome:
       - delay: 3s
 
       - lambda: |-
-          ESP_LOGI("boot", "LVGL should initialize now with main page...");
+          id(display_ready) = true;
+          ESP_LOGI("boot", "LVGL initialized; applying display orientation and layout...");
+      - lvgl.display.set_rotation:
+          rotation: !lambda |-
+            return id(flip_screen).state ? 270 : 90;
+      - script.execute:
+          id: apply_display_layout
+          flipped: !lambda 'return id(flip_screen).state;'
 
       # Force main page to show after LVGL initializes
       - delay: 200ms
@@ -37,12 +44,17 @@ esphome:
       - delay: 5s
       - lambda: |-
           ESP_LOGI("boot", "SWD programming should be complete, starting fan control...");
+          // The RP2040 restarts with its humidifier output at 0%. Discard any
+          // control state produced by sensor callbacks while it was programming.
+          id(humidifier_on_flag) = false;
+          id(humidifier_command_duty) = 0;
+          id(humidifier_command_succeeded) = false;
+          id(coprocessor_ready) = true;
 
       # Continue with normal boot sequence
       - script.stop: fan_rpm_check
       - script.stop: fan_stop_check
       - script.execute: air_exchange_manager
-      - script.execute: touch_button_monitor
 
       # Restart WiFi AP after 5 seconds to ensure DHCP server is running
       - delay: 5s
@@ -134,6 +146,19 @@ interval:
   - interval: 30s # Every 30 seconds, run the water level calculator
     then:
       - script.execute: water_level_calculator          
+
+  # Keep the ESP32 and coprocessor outputs reconciled. This also recovers the
+  # humidifier automatically if the coprocessor restarts or misses a command.
+  - interval: 15s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return id(coprocessor_ready) && id(humidifier_on_flag);
+          then:
+            - script.execute:
+                id: humidifier_pwm_control
+                requested_duty: !lambda 'return id(humidifier_speed).state;'
 
   # Watchdog: nudge SoftAP/DHCP if the STA link stays down
   - interval: 45s
@@ -284,7 +309,13 @@ interval:
             uint32_t hours = uptime_sec / 3600;
             uint32_t minutes = (uptime_sec % 3600) / 60;
             char str[20];
-            sprintf(str, "%dh %dm", hours, minutes);
+            snprintf(
+              str,
+              sizeof(str),
+              "%luh %lum",
+              static_cast<unsigned long>(hours),
+              static_cast<unsigned long>(minutes)
+            );
             return std::string(str);
 
       - lvgl.label.update:

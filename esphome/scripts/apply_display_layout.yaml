@@ -1,0 +1,77 @@
+- id: apply_display_layout
+  mode: restart
+  parameters:
+    flipped: bool
+  then:
+    - lambda: |-
+        if (!id(display_ready)) {
+          return;
+        }
+
+        if (flipped != id(display_layout_flipped)) {
+          const int content_delta = flipped ? 20 : -20;
+          const int button_y = flipped ? 0 : 107;
+
+          auto layout_page = [&](lv_obj_t *page, uint32_t button_count) {
+            lv_obj_update_layout(page);
+            const uint32_t child_count = lv_obj_get_child_count(page);
+            if (child_count < button_count) {
+              return;
+            }
+
+            const uint32_t content_count = child_count - button_count;
+            for (uint32_t index = 0; index < content_count; index++) {
+              lv_obj_t *child = lv_obj_get_child(page, index);
+              if (child != id(main_status_message)) {
+                const int current_y =
+                  lv_obj_get_style_y(child, LV_PART_MAIN);
+                lv_obj_set_style_y(
+                  child,
+                  current_y + content_delta,
+                  LV_PART_MAIN
+                );
+              }
+            }
+
+            for (uint32_t index = content_count; index < child_count; index++) {
+              lv_obj_set_style_y(
+                lv_obj_get_child(page, index),
+                button_y,
+                LV_PART_MAIN
+              );
+            }
+
+            lv_obj_update_layout(page);
+            lv_obj_invalidate(page);
+          };
+
+          layout_page(id(aaaa).obj, 1);
+          layout_page(id(bsettingsmenu).obj, 4);
+          layout_page(id(ctempsettings).obj, 4);
+          layout_page(id(dhumiditysettings).obj, 4);
+          layout_page(id(elightsettings).obj, 4);
+          layout_page(id(fairsettings).obj, 4);
+          layout_page(id(gwatercalibration).obj, 4);
+          layout_page(id(hsystemsettings).obj, 4);
+
+          id(display_layout_flipped) = flipped;
+        }
+
+        lv_obj_update_layout(id(hsystemsettings).obj);
+        const uint32_t system_child_count =
+          lv_obj_get_child_count(id(hsystemsettings).obj);
+        if (system_child_count >= 4) {
+          lv_obj_t *title = lv_obj_get_child(id(hsystemsettings).obj, 0);
+          lv_obj_t *first_button =
+            lv_obj_get_child(id(hsystemsettings).obj, system_child_count - 4);
+          const int title_y = lv_obj_get_style_y(title, LV_PART_MAIN);
+          const int button_y =
+            lv_obj_get_style_y(first_button, LV_PART_MAIN);
+          const std::string status = str_sprintf(
+            "%s: title y=%d, buttons y=%d",
+            flipped ? "Flipped" : "Normal",
+            static_cast<int>(title_y),
+            static_cast<int>(button_y)
+          );
+          id(display_layout_status).publish_state(status.c_str());
+        }

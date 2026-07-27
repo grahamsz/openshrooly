@@ -1,99 +1,98 @@
 # ========================================================================
-# HUMIDITY SETTINGS
+# SYSTEM SETTINGS AND INFORMATION
 # ========================================================================
 
-- id: dhumiditysettings
+- id: hsystemsettings
   bg_color: paper_white
   widgets:
     - label:
-        text: "Humidity"
+        text: "System"
         align: TOP_MID
         y: 2
         text_font: font1
-    - label:
-        id: humidity_current_label
-        text: "Current: --.-%"
-        align: TOP_LEFT
-        x: 10
-        y: 18
-        text_font: font1
-    - label:
-        id: humidity_water_label
-        text: "Water: ---%"
-        align: TOP_RIGHT
-        x: -10
-        y: 18
-        text_font: font1
 
     - label:
-        id: humidity_target_carat
+        id: system_timezone_marker
         text: ">"
         align: TOP_LEFT
         x: 5
-        y: 38
+        y: 20
         text_font: font1
     - label:
-        text: "Target"
+        text: "Timezone"
         align: TOP_LEFT
         x: 17
-        y: 38
+        y: 20
         text_font: font1
     - label:
-        id: humidity_target_value
-        text: "--.-%"
+        id: system_timezone_value
+        text: "--"
         align: TOP_RIGHT
         x: -10
-        y: 38
+        y: 20
         text_font: font1
 
     - label:
-        id: humidity_hysteresis_carat
+        id: system_orientation_marker
         text: " "
         align: TOP_LEFT
         x: 5
-        y: 55
+        y: 38
         text_font: font1
     - label:
-        text: "Hysteresis"
+        text: "Flip screen"
         align: TOP_LEFT
         x: 17
-        y: 55
+        y: 38
         text_font: font1
     - label:
-        id: humidity_hysteresis_value
-        text: "--.--%"
+        id: system_orientation_value
+        text: "Off"
         align: TOP_RIGHT
         x: -10
-        y: 55
+        y: 38
         text_font: font1
 
     - label:
-        id: humidity_speed_carat
-        text: " "
-        align: TOP_LEFT
-        x: 5
-        y: 72
-        text_font: font1
-    - label:
-        text: "Humidifier speed"
+        text: "Voltage"
         align: TOP_LEFT
         x: 17
-        y: 72
+        y: 56
         text_font: font1
     - label:
-        id: humidity_speed_value
-        text: "---%"
+        id: system_voltage_value
+        text: "--.--V"
         align: TOP_RIGHT
         x: -10
-        y: 72
+        y: 56
         text_font: font1
 
     - label:
-        id: humidity_status_label
-        text: "Status: --"
+        text: "WiFi"
         align: TOP_LEFT
-        x: 10
-        y: 89
+        x: 17
+        y: 74
+        text_font: font1
+    - label:
+        id: system_ssid_value
+        text: "--"
+        align: TOP_RIGHT
+        x: -10
+        y: 74
+        text_font: font1
+
+    - label:
+        text: "IP"
+        align: TOP_LEFT
+        x: 17
+        y: 90
+        text_font: font1
+    - label:
+        id: system_ip_value
+        text: "--"
+        align: TOP_RIGHT
+        x: -10
+        y: 90
         text_font: font1
 
     - obj:

@@ -25,6 +25,6 @@ display:
     reset_pin: GPIO21
     model: 2.90inv2-r2
     update_interval: never      # Manual updates only via component.update
-    full_update_every: 30      # Full refresh every 30 partial updates
+    full_update_every: 300     # Full refresh every 300 partial updates
     auto_clear_enabled: false   # Required for LVGL
     # No lambda - LVGL handles all display updates

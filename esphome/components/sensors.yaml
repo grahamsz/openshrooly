@@ -178,6 +178,77 @@ sensor:
               }
             }
 
+  - platform: template
+    name: "Water Capacitance Empty"
+    id: water_cap_empty
+    icon: mdi:water-outline
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: grp_hidden
+
+  - platform: template
+    name: "Water Capacitance Low"
+    id: water_cap_low
+    icon: mdi:water-outline
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: grp_hidden
+
+  - platform: template
+    name: "Water Capacitance Middle"
+    id: water_cap_mid
+    icon: mdi:water-outline
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: grp_hidden
+
+  - platform: template
+    name: "Water Capacitance High"
+    id: water_cap_high
+    icon: mdi:water-outline
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: grp_hidden
+
+  - platform: template
+    name: "Water Capacitance Overflow"
+    id: water_cap_overflow
+    icon: mdi:water-alert
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: grp_hidden
+
+  - platform: template
+    name: "Coprocessor Protocol Version"
+    id: coprocessor_protocol_version
+    icon: mdi:chip
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: grp_hidden
+
+  - platform: template
+    name: "Humidifier Coprocessor Duty"
+    id: humidifier_coprocessor_duty
+    icon: mdi:fan
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: never
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: grp_hidden
+
   #=======================================================================
   # SECTION 2: Public (Smoothed) Template Sensors for Home Assistant
   # These receive updates every second, but use FILTERS to decide when
@@ -224,6 +295,4 @@ sensor:
       sorting_weight: 40
     filters:
       - delta: 25.0
-
-
 

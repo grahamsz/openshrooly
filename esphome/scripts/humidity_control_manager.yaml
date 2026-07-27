@@ -5,6 +5,11 @@
   mode: queued
   then:
   - lambda: |-
+      if (!id(coprocessor_ready)) {
+        id(humidifier_fan_status).publish_state("Starting coprocessor");
+        return;
+      }
+
       if (isnan(id(humidity).state) || isnan(id(target_humidity).state)) {
         return;
       }
@@ -42,21 +47,15 @@
       const uint32_t min_on_ms = static_cast<uint32_t>(min_on_s * 1000.0f);
       const uint32_t min_off_ms = static_cast<uint32_t>(min_off_s * 1000.0f);
 
-      auto copro_write_humidifier = [&](uint8_t value) -> bool {
-        id(copro_bus).execute(0x6C, 0x00, value, 2, 0);
-        return !id(copro_last_error);
-      };
-
       if (raw_humidity == 0.0f) {
+        id(humidifier_effectiveness_check).stop();
+        id(humidity_not_rising_flag) = false;
+        id(alert_humidity_failure).publish_state(false);
+
         if (id(humidifier_on_flag)) {
           id(humidifier_on_flag) = false;
-          id(humidifier_pwm_control).stop();
-
-          if (!copro_write_humidifier(0x00)) {
-            ESP_LOGW("humidity", "Failed to turn off humidifier while waiting for sensor to initialize");
-          } else {
-            ESP_LOGW("humidity", "Turning off humidifier - waiting for humidity sensor to initialize");
-          }
+          id(humidifier_pwm_control).execute(0.0f);
+          ESP_LOGW("humidity", "Turning off humidifier - waiting for humidity sensor to initialize");
         }
 
         humidity_samples[0] = humidity_samples[1] = humidity_samples[2] = NAN;
@@ -166,10 +165,12 @@
 
       if (should_turn_on) {
         id(humidifier_on_flag) = true;
+        id(humidity_not_rising_flag) = false;
+        id(alert_humidity_failure).publish_state(false);
         last_on_ms = now;
         pending_off_dwell_log = false;
 
-        id(humidifier_pwm_control).execute();
+        id(humidifier_pwm_control).execute(id(humidifier_speed).state);
         id(humidifier_effectiveness_check).execute();
 
         ESP_LOGI(
@@ -183,14 +184,13 @@
 
       } else if (should_turn_off) {
         id(humidifier_on_flag) = false;
+        id(humidifier_effectiveness_check).stop();
+        id(humidity_not_rising_flag) = false;
+        id(alert_humidity_failure).publish_state(false);
         last_off_ms = now;
         pending_on_dwell_log = false;
 
-        id(humidifier_pwm_control).stop();
-
-        if (!copro_write_humidifier(0x00)) {
-          ESP_LOGW("humidity", "❌ I2C write FAILED for humidifier OFF");
-        }
+        id(humidifier_pwm_control).execute(0.0f);
 
         ESP_LOGI(
           "humidity",

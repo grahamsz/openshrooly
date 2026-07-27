@@ -1,6 +1,7 @@
 # ========================================================================
-# UI NAVIGATION HANDLER
-# Context-aware navigation for the new screen structure
+# FOUR-BUTTON UI NAVIGATION AND SETTINGS CONTROL
+# Button 1: Back, Button 2: decrement/up, Button 3: increment/down,
+# Button 4: select/next
 # ========================================================================
 
 - id: ui_navigation_handler
@@ -9,223 +10,642 @@
     button: int
   then:
     - lambda: |-
-        ESP_LOGI("ui", "Button %d pressed", button);
+        enum UiPage {
+          PAGE_MAIN = 0,
+          PAGE_MENU = 1,
+          PAGE_TEMPERATURE = 2,
+          PAGE_HUMIDITY = 3,
+          PAGE_LIGHT = 4,
+          PAGE_AIR = 5,
+          PAGE_WATER = 6,
+          PAGE_SYSTEM = 7,
+        };
 
-    # Main page navigation
+        int page = PAGE_MAIN;
+        if (id(bsettingsmenu).is_showing()) {
+          page = PAGE_MENU;
+        } else if (id(ctempsettings).is_showing()) {
+          page = PAGE_TEMPERATURE;
+        } else if (id(dhumiditysettings).is_showing()) {
+          page = PAGE_HUMIDITY;
+        } else if (id(elightsettings).is_showing()) {
+          page = PAGE_LIGHT;
+        } else if (id(fairsettings).is_showing()) {
+          page = PAGE_AIR;
+        } else if (id(gwatercalibration).is_showing()) {
+          page = PAGE_WATER;
+        } else if (id(hsystemsettings).is_showing()) {
+          page = PAGE_SYSTEM;
+        }
+
+        id(current_ui_page) = page;
+        id(page_just_changed) = false;
+        ESP_LOGI("ui", "Page %d, button %d", page, button);
+
+        auto change_number = [](number::Number *entity, bool increase) {
+          auto call = entity->make_call();
+          if (increase) {
+            call.number_increment(false);
+          } else {
+            call.number_decrement(false);
+          }
+          call.perform();
+        };
+
+        if (page == PAGE_MAIN) {
+          if (button == 4) {
+            id(menu_selection) = 0;
+            id(current_ui_page) = PAGE_MENU;
+            id(page_just_changed) = true;
+          }
+        } else if (page == PAGE_MENU) {
+          if (button == 1) {
+            id(current_ui_page) = PAGE_MAIN;
+            id(page_just_changed) = true;
+          } else if (button == 2) {
+            id(menu_selection) = (id(menu_selection) + 5) % 6;
+          } else if (button == 3) {
+            id(menu_selection) = (id(menu_selection) + 1) % 6;
+          } else if (button == 4) {
+            static const int menu_pages[6] = {
+              PAGE_TEMPERATURE,
+              PAGE_HUMIDITY,
+              PAGE_LIGHT,
+              PAGE_AIR,
+              PAGE_WATER,
+              PAGE_SYSTEM,
+            };
+            id(settings_selection) = 0;
+            id(current_ui_page) = menu_pages[id(menu_selection)];
+            id(page_just_changed) = true;
+          }
+        } else if (page == PAGE_TEMPERATURE) {
+          if (button == 1) {
+            id(current_ui_page) = PAGE_MENU;
+            id(page_just_changed) = true;
+          } else if (button == 4) {
+            id(settings_selection) = (id(settings_selection) + 1) % 5;
+          } else if (button == 2 || button == 3) {
+            const bool increase = button == 3;
+            switch (id(settings_selection)) {
+              case 0:
+                id(temperature_control_enabled).control(increase);
+                break;
+              case 1:
+                change_number(id(temperature_target), increase);
+                break;
+              case 2:
+                change_number(id(temperature_hysteresis), increase);
+                break;
+              case 3:
+                change_number(id(temperature_warning_minimum), increase);
+                break;
+              case 4:
+                change_number(id(temperature_warning_maximum), increase);
+                break;
+            }
+          }
+        } else if (page == PAGE_HUMIDITY) {
+          if (button == 1) {
+            id(current_ui_page) = PAGE_MENU;
+            id(page_just_changed) = true;
+          } else if (button == 4) {
+            id(settings_selection) = (id(settings_selection) + 1) % 3;
+          } else if (button == 2 || button == 3) {
+            const bool increase = button == 3;
+            switch (id(settings_selection)) {
+              case 0:
+                change_number(id(target_humidity), increase);
+                break;
+              case 1:
+                change_number(id(humidity_hysteresis), increase);
+                break;
+              case 2:
+                change_number(id(humidifier_speed), increase);
+                break;
+            }
+          }
+        } else if (page == PAGE_LIGHT) {
+          if (button == 1) {
+            id(current_ui_page) = PAGE_MENU;
+            id(page_just_changed) = true;
+          } else if (button == 4) {
+            id(settings_selection) = (id(settings_selection) + 1) % 6;
+          } else if (button == 2 || button == 3) {
+            const bool increase = button == 3;
+            switch (id(settings_selection)) {
+              case 0:
+                change_number(id(sunrise_hour), increase);
+                break;
+              case 1:
+                change_number(id(light_hours), increase);
+                break;
+              case 2:
+                change_number(id(white_intensity), increase);
+                break;
+              case 3:
+                change_number(id(color_r), increase);
+                break;
+              case 4:
+                change_number(id(color_g), increase);
+                break;
+              case 5:
+                change_number(id(color_b), increase);
+                break;
+            }
+          }
+        } else if (page == PAGE_AIR) {
+          if (button == 1) {
+            id(current_ui_page) = PAGE_MENU;
+            id(page_just_changed) = true;
+          } else if (button == 4) {
+            id(settings_selection) = (id(settings_selection) + 1) % 3;
+          } else if (button == 2 || button == 3) {
+            const bool increase = button == 3;
+            switch (id(settings_selection)) {
+              case 0:
+                change_number(id(air_exchange_period_min), increase);
+                break;
+              case 1:
+                change_number(id(air_exchange_run_sec), increase);
+                break;
+              case 2:
+                change_number(id(air_exchange_speed), increase);
+                break;
+            }
+          }
+        } else if (page == PAGE_WATER) {
+          if (button == 1) {
+            id(current_ui_page) = PAGE_MENU;
+            id(page_just_changed) = true;
+          } else if (button == 2) {
+            id(settings_selection) = (id(settings_selection) + 2) % 3;
+          } else if (button == 3) {
+            id(settings_selection) = (id(settings_selection) + 1) % 3;
+          } else if (button == 4) {
+            if (id(settings_selection) == 0) {
+              id(water_calibration_button).press();
+            } else if (id(settings_selection) == 1) {
+              id(reset_water_calibration_button).press();
+            } else {
+              id(shrooly_touch_controller).request_recalibration();
+            }
+          }
+        } else if (page == PAGE_SYSTEM) {
+          if (button == 1) {
+            id(current_ui_page) = PAGE_MENU;
+            id(page_just_changed) = true;
+          } else if (button == 4) {
+            id(settings_selection) = (id(settings_selection) + 1) % 2;
+          } else if (button == 2 || button == 3) {
+            if (id(settings_selection) == 0) {
+              static const char *const TIMEZONES[] = {
+                "America/Los_Angeles",
+                "America/Denver",
+                "America/Phoenix",
+                "America/Chicago",
+                "America/New_York",
+                "Europe/London",
+                "Europe/Berlin",
+                "Asia/Tokyo",
+              };
+              constexpr int TIMEZONE_COUNT =
+                  sizeof(TIMEZONES) / sizeof(TIMEZONES[0]);
+              const auto current = id(timezone).current_option();
+              int current_index = 0;
+              for (int i = 0; i < TIMEZONE_COUNT; i++) {
+                if (current == TIMEZONES[i]) {
+                  current_index = i;
+                  break;
+                }
+              }
+              const int direction = button == 3 ? 1 : -1;
+              const int next_index =
+                  (current_index + direction + TIMEZONE_COUNT) % TIMEZONE_COUNT;
+              id(timezone).make_call().set_option(TIMEZONES[next_index]).perform();
+            } else {
+              id(flip_screen).control(!id(flip_screen).state);
+            }
+          }
+        }
+
+    # Show a newly selected page exactly once.
     - if:
         condition:
-          lambda: 'return id(aaaa).is_showing() && button == 4;'
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 0;'
         then:
-          - lambda: |-
-              ESP_LOGI("ui", "Navigating to settings menu");
-              id(menu_selection) = 0;  // Reset menu selection
+          - lvgl.page.show: aaaa
+    - if:
+        condition:
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 1;'
+        then:
           - lvgl.page.show: bsettingsmenu
-          # Update menu display to show first item selected
+    - if:
+        condition:
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 2;'
+        then:
+          - lvgl.page.show: ctempsettings
+    - if:
+        condition:
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 3;'
+        then:
+          - lvgl.page.show: dhumiditysettings
+    - if:
+        condition:
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 4;'
+        then:
+          - lvgl.page.show: elightsettings
+    - if:
+        condition:
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 5;'
+        then:
+          - lvgl.page.show: fairsettings
+    - if:
+        condition:
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 6;'
+        then:
+          - lvgl.page.show: gwatercalibration
+    - if:
+        condition:
+          lambda: 'return id(page_just_changed) && id(current_ui_page) == 7;'
+        then:
+          - lvgl.page.show: hsystemsettings
+
+    # Settings menu.
+    - if:
+        condition:
+          lambda: 'return id(current_ui_page) == 1;'
+        then:
           - lvgl.label.update:
               id: menu_temp_item
-              text: "> Temperature"
+              text: !lambda |-
+                return std::string(
+                    id(menu_selection) == 0 ? "> Temperature" : "  Temperature");
           - lvgl.label.update:
               id: menu_humidity_item
-              text: "  Humidity"
+              text: !lambda |-
+                return std::string(
+                    id(menu_selection) == 1 ? "> Humidity" : "  Humidity");
           - lvgl.label.update:
               id: menu_light_item
-              text: "  Light"
+              text: !lambda |-
+                return std::string(
+                    id(menu_selection) == 2 ? "> Lighting" : "  Lighting");
           - lvgl.label.update:
               id: menu_air_item
-              text: "  Air Exchange"
+              text: !lambda |-
+                return std::string(
+                    id(menu_selection) == 3 ? "> Air Exchange" : "  Air Exchange");
+          - lvgl.label.update:
+              id: menu_water_item
+              text: !lambda |-
+                return std::string(
+                    id(menu_selection) == 4
+                      ? "> Water Calibration"
+                      : "  Water Calibration");
           - lvgl.label.update:
               id: menu_system_item
-              text: "  System Info"
-          - delay: 25ms
-          - component.update: my_display
-        else:
-          # Only process other pages if we didn't just handle main page
-          - if:
-              condition:
-                lambda: 'return id(bsettingsmenu).is_showing();'
-              then:
-                # Settings menu page navigation
-                - lambda: |-
-                    if (button == 1) {  // Back to main
-                      ESP_LOGI("ui", "Back to main");
-                      id(menu_selection) = 0;  // Reset on back
-                    } else if (button == 2) {  // Up
-                      if (id(menu_selection) > 0) {
-                        id(menu_selection)--;
-                        ESP_LOGI("ui", "Menu up: %d", id(menu_selection));
-                      }
-                    } else if (button == 3) {  // Down
-                      if (id(menu_selection) < 4) {
-                        id(menu_selection)++;
-                        ESP_LOGI("ui", "Menu down: %d", id(menu_selection));
-                      }
-                    } else if (button == 4) {  // Select
-                      ESP_LOGI("ui", "Selecting menu item: %d", id(menu_selection));
-                    }
+              text: !lambda |-
+                return std::string(
+                    id(menu_selection) == 5 ? "> System" : "  System");
 
-                # Update menu display based on selection
-                - lvgl.label.update:
-                    id: menu_temp_item
-                    text: !lambda |-
-                      return std::string(id(menu_selection) == 0 ? "> Temperature" : "  Temperature");
-                - lvgl.label.update:
-                    id: menu_humidity_item
-                    text: !lambda |-
-                      return std::string(id(menu_selection) == 1 ? "> Humidity" : "  Humidity");
-                - lvgl.label.update:
-                    id: menu_light_item
-                    text: !lambda |-
-                      return std::string(id(menu_selection) == 2 ? "> Light" : "  Light");
-                - lvgl.label.update:
-                    id: menu_air_item
-                    text: !lambda |-
-                      return std::string(id(menu_selection) == 3 ? "> Air Exchange" : "  Air Exchange");
-                - lvgl.label.update:
-                    id: menu_system_item
-                    text: !lambda |-
-                      return std::string(id(menu_selection) == 4 ? "> System Info" : "  System Info");
+    # Temperature settings.
+    - if:
+        condition:
+          lambda: 'return id(current_ui_page) == 2;'
+        then:
+          - lvgl.label.update:
+              id: temp_current_label
+              text: !lambda |-
+                char value[32];
+                if (id(temperature).has_state()) {
+                  snprintf(value, sizeof(value), "Current: %.1f°C", id(temperature).state);
+                } else {
+                  snprintf(value, sizeof(value), "Current: --.-°C");
+                }
+                return std::string(value);
+          - lvgl.label.update:
+              id: temp_enabled_carat
+              text: !lambda 'return std::string(id(settings_selection) == 0 ? ">" : " ");'
+          - lvgl.label.update:
+              id: temp_target_carat
+              text: !lambda 'return std::string(id(settings_selection) == 1 ? ">" : " ");'
+          - lvgl.label.update:
+              id: temp_hysteresis_carat
+              text: !lambda 'return std::string(id(settings_selection) == 2 ? ">" : " ");'
+          - lvgl.label.update:
+              id: temp_warn_min_carat
+              text: !lambda 'return std::string(id(settings_selection) == 3 ? ">" : " ");'
+          - lvgl.label.update:
+              id: temp_warn_max_carat
+              text: !lambda 'return std::string(id(settings_selection) == 4 ? ">" : " ");'
+          - lvgl.label.update:
+              id: temp_enabled_value
+              text: !lambda 'return std::string(id(temperature_control_enabled).state ? "ON" : "OFF");'
+          - lvgl.label.update:
+              id: temp_target_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.1f°C", id(temperature_target).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: temp_hysteresis_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.2f°C", id(temperature_hysteresis).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: temp_warn_min_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.1f°C", id(temperature_warning_minimum).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: temp_warn_max_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.1f°C", id(temperature_warning_maximum).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: temp_minus_label
+              text: !lambda 'return std::string(id(settings_selection) == 0 ? "Off" : "-");'
+          - lvgl.label.update:
+              id: temp_plus_label
+              text: !lambda 'return std::string(id(settings_selection) == 0 ? "On" : "+");'
 
-                # Handle navigation
-                - if:
-                    condition:
-                      lambda: 'return button == 1;'  # Back
-                    then:
-                      - lvgl.page.show: aaaa
-                      - delay: 25ms
-                      - component.update: my_display
+    # Humidity settings.
+    - if:
+        condition:
+          lambda: 'return id(current_ui_page) == 3;'
+        then:
+          - lvgl.label.update:
+              id: humidity_current_label
+              text: !lambda |-
+                char value[32];
+                if (id(humidity).has_state()) {
+                  snprintf(value, sizeof(value), "Current: %.1f%%", id(humidity).state);
+                } else {
+                  snprintf(value, sizeof(value), "Current: --.-%%");
+                }
+                return std::string(value);
+          - lvgl.label.update:
+              id: humidity_water_label
+              text: !lambda |-
+                char value[24];
+                if (id(water_level_percent).has_state()) {
+                  snprintf(value, sizeof(value), "Water: %.0f%%", id(water_level_percent).state);
+                } else {
+                  snprintf(value, sizeof(value), "Water: ---%%");
+                }
+                return std::string(value);
+          - lvgl.label.update:
+              id: humidity_target_carat
+              text: !lambda 'return std::string(id(settings_selection) == 0 ? ">" : " ");'
+          - lvgl.label.update:
+              id: humidity_hysteresis_carat
+              text: !lambda 'return std::string(id(settings_selection) == 1 ? ">" : " ");'
+          - lvgl.label.update:
+              id: humidity_speed_carat
+              text: !lambda 'return std::string(id(settings_selection) == 2 ? ">" : " ");'
+          - lvgl.label.update:
+              id: humidity_target_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.1f%%", id(target_humidity).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: humidity_hysteresis_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.2f%%", id(humidity_hysteresis).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: humidity_speed_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.0f%%", id(humidifier_speed).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: humidity_status_label
+              text: !lambda |-
+                return std::string("Status: ") + id(humidifier_fan_status).state;
 
-                - if:
-                    condition:
-                      lambda: 'return button == 4;'  # Select
-                    then:
-                      - if:
-                          condition:
-                            lambda: 'return id(menu_selection) == 0;'
-                          then:
-                            - lvgl.page.show: ctempsettings
-                      - if:
-                          condition:
-                            lambda: 'return id(menu_selection) == 1;'
-                          then:
-                            - lvgl.page.show: dhumiditysettings
-                      - if:
-                          condition:
-                            lambda: 'return id(menu_selection) == 2;'
-                          then:
-                            - lvgl.page.show: elightsettings
-                      - if:
-                          condition:
-                            lambda: 'return id(menu_selection) == 3;'
-                          then:
-                            - lvgl.page.show: fairsettings
-                      - if:
-                          condition:
-                            lambda: 'return id(menu_selection) == 4;'
-                          then:
-                            - lvgl.page.show: aaaa
-                      - delay: 25ms
-                      - component.update: my_display
+    # Lighting settings.
+    - if:
+        condition:
+          lambda: 'return id(current_ui_page) == 4;'
+        then:
+          - lvgl.label.update:
+              id: light_sunrise_carat
+              text: !lambda 'return std::string(id(settings_selection) == 0 ? ">" : " ");'
+          - lvgl.label.update:
+              id: light_duration_carat
+              text: !lambda 'return std::string(id(settings_selection) == 1 ? ">" : " ");'
+          - lvgl.label.update:
+              id: light_white_carat
+              text: !lambda 'return std::string(id(settings_selection) == 2 ? ">" : " ");'
+          - lvgl.label.update:
+              id: light_red_carat
+              text: !lambda 'return std::string(id(settings_selection) == 3 ? ">" : " ");'
+          - lvgl.label.update:
+              id: light_green_carat
+              text: !lambda 'return std::string(id(settings_selection) == 4 ? ">" : " ");'
+          - lvgl.label.update:
+              id: light_blue_carat
+              text: !lambda 'return std::string(id(settings_selection) == 5 ? ">" : " ");'
+          - lvgl.label.update:
+              id: light_sunrise_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%02.0f:00", id(sunrise_hour).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: light_duration_value
+              text: !lambda |-
+                char value[20];
+                snprintf(value, sizeof(value), "%.2f hrs", id(light_hours).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: light_white_value
+              text: !lambda |-
+                char value[20];
+                snprintf(value, sizeof(value), "%.0f lux", id(white_intensity).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: light_red_value
+              text: !lambda |-
+                char value[12];
+                snprintf(value, sizeof(value), "%.0f%%", id(color_r).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: light_green_value
+              text: !lambda |-
+                char value[12];
+                snprintf(value, sizeof(value), "%.0f%%", id(color_g).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: light_blue_value
+              text: !lambda |-
+                char value[12];
+                snprintf(value, sizeof(value), "%.0f%%", id(color_b).state);
+                return std::string(value);
 
-          - if:
-              condition:
-                lambda: 'return id(dhumiditysettings).is_showing();'
-              then:
-                # Humidity settings page navigation
-                - lambda: |-
-                    if (button == 1) {  // Back
-                      if (id(edit_mode)) {
-                        // Cancel edit mode
-                        id(edit_mode) = false;
-                        ESP_LOGI("ui", "Cancelled edit mode");
-                      } else {
-                        // Go back to settings menu
-                        id(humidity_selection) = 0;
-                      }
-                    } else if (button == 2) {  // Up
-                      if (id(edit_mode)) {
-                        // Increase value
-                        ESP_LOGI("ui", "Increase value");
-                      } else {
-                        // Move selection up
-                        if (id(humidity_selection) > 0) {
-                          id(humidity_selection)--;
-                          ESP_LOGI("ui", "Selection up: %d", id(humidity_selection));
-                        }
-                      }
-                    } else if (button == 3) {  // Down
-                      if (id(edit_mode)) {
-                        // Decrease value
-                        ESP_LOGI("ui", "Decrease value");
-                      } else {
-                        // Move selection down
-                        if (id(humidity_selection) < 2) {  // 3 items: target, mode, speed
-                          id(humidity_selection)++;
-                          ESP_LOGI("ui", "Selection down: %d", id(humidity_selection));
-                        }
-                      }
-                    } else if (button == 4) {  // Select/Accept
-                      if (id(edit_mode)) {
-                        // Accept changes
-                        id(edit_mode) = false;
-                        ESP_LOGI("ui", "Accepted changes");
-                      } else {
-                        // Enter edit mode
-                        id(edit_mode) = true;
-                        ESP_LOGI("ui", "Entered edit mode for item %d", id(humidity_selection));
-                      }
-                    }
+    # Air exchange settings.
+    - if:
+        condition:
+          lambda: 'return id(current_ui_page) == 5;'
+        then:
+          - lvgl.label.update:
+              id: air_status_label
+              text: !lambda |-
+                char value[40];
+                const float rpm = id(fan_tach_internal).has_state()
+                                      ? id(fan_tach_internal).state
+                                      : 0.0f;
+                snprintf(value, sizeof(value), "Fan: %s (%.0f RPM)",
+                         id(air_exchange_on_flag) ? "ON" : "OFF", rpm);
+                return std::string(value);
+          - lvgl.label.update:
+              id: air_period_carat
+              text: !lambda 'return std::string(id(settings_selection) == 0 ? ">" : " ");'
+          - lvgl.label.update:
+              id: air_duration_carat
+              text: !lambda 'return std::string(id(settings_selection) == 1 ? ">" : " ");'
+          - lvgl.label.update:
+              id: air_speed_carat
+              text: !lambda 'return std::string(id(settings_selection) == 2 ? ">" : " ");'
+          - lvgl.label.update:
+              id: air_period_value
+              text: !lambda |-
+                char value[20];
+                snprintf(value, sizeof(value), "%.0f min", id(air_exchange_period_min).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: air_duration_value
+              text: !lambda |-
+                char value[20];
+                snprintf(value, sizeof(value), "%.0f sec", id(air_exchange_run_sec).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: air_speed_value
+              text: !lambda |-
+                char value[16];
+                snprintf(value, sizeof(value), "%.0f%%", id(air_exchange_speed).state);
+                return std::string(value);
+          - lvgl.label.update:
+              id: air_next_cycle_label
+              text: !lambda |-
+                return id(air_exchange_on_flag)
+                         ? std::string("Cycle: running")
+                         : std::string("Cycle: waiting");
 
-                # Update carat indicators
-                - lvgl.label.update:
-                    id: humidity_target_carat
-                    text: !lambda |-
-                      return std::string(id(humidity_selection) == 0 ? ">" : " ");
-                - lvgl.label.update:
-                    id: humidity_mode_carat
-                    text: !lambda |-
-                      return std::string(id(humidity_selection) == 1 ? ">" : " ");
-                - lvgl.label.update:
-                    id: humidity_speed_carat
-                    text: !lambda |-
-                      return std::string(id(humidity_selection) == 2 ? ">" : " ");
+    # Water calibration actions.
+    - if:
+        condition:
+          lambda: 'return id(current_ui_page) == 6;'
+        then:
+          - lvgl.label.update:
+              id: water_level_label
+              text: !lambda |-
+                char value[24];
+                if (id(water_level_percent).has_state()) {
+                  snprintf(value, sizeof(value), "Level: %.0f%%", id(water_level_percent).state);
+                } else {
+                  snprintf(value, sizeof(value), "Level: ---%%");
+                }
+                return std::string(value);
+          - lvgl.label.update:
+              id: water_status_label
+              text: !lambda |-
+                if (id(calibration_step) == 1) {
+                  return std::string("Status: confirm empty tank");
+                }
+                return id(is_calibrated)
+                         ? std::string("Status: calibrated")
+                         : std::string("Status: using defaults");
+          - lvgl.label.update:
+              id: water_calibrate_carat
+              text: !lambda 'return std::string(id(settings_selection) == 0 ? ">" : " ");'
+          - lvgl.label.update:
+              id: water_reset_carat
+              text: !lambda 'return std::string(id(settings_selection) == 1 ? ">" : " ");'
+          - lvgl.label.update:
+              id: water_touch_carat
+              text: !lambda 'return std::string(id(settings_selection) == 2 ? ">" : " ");'
+          - lvgl.label.update:
+              id: water_calibrate_action
+              text: !lambda |-
+                return id(calibration_step) == 1
+                         ? std::string("Confirm empty tank")
+                         : std::string("Calibrate empty tank");
+          - lvgl.label.update:
+              id: water_action_hint
+              text: !lambda |-
+                if (id(settings_selection) == 0) {
+                  return id(calibration_step) == 1
+                           ? std::string("Run again to save calibration")
+                           : std::string("Tank must be completely empty");
+                }
+                if (id(settings_selection) == 1) {
+                  return std::string("Restores built-in baselines");
+                }
+                return std::string("Do not touch pads for 2 seconds");
 
-                # Update button labels based on edit mode
-                - lvgl.label.update:
-                    id: humidity_btn2_label
-                    text: !lambda |-
-                      return std::string(id(edit_mode) ? "+" : "Up");
-                - lvgl.label.update:
-                    id: humidity_btn3_label
-                    text: !lambda |-
-                      return std::string(id(edit_mode) ? "-" : "Down");
+    # System settings and information.
+    - if:
+        condition:
+          lambda: 'return id(current_ui_page) == 7;'
+        then:
+          - lvgl.label.update:
+              id: system_timezone_marker
+              text: !lambda |-
+                return id(settings_selection) == 0
+                         ? std::string(">")
+                         : std::string(" ");
+          - lvgl.label.update:
+              id: system_orientation_marker
+              text: !lambda |-
+                return id(settings_selection) == 1
+                         ? std::string(">")
+                         : std::string(" ");
+          - lvgl.label.update:
+              id: system_timezone_value
+              text: !lambda |-
+                const auto tz = id(timezone).current_option();
+                if (tz == "America/Los_Angeles") return std::string("Pacific");
+                if (tz == "America/Denver") return std::string("Mountain");
+                if (tz == "America/Phoenix") return std::string("Arizona");
+                if (tz == "America/Chicago") return std::string("Central");
+                if (tz == "America/New_York") return std::string("Eastern");
+                if (tz == "Europe/London") return std::string("London");
+                if (tz == "Europe/Berlin") return std::string("Berlin");
+                if (tz == "Asia/Tokyo") return std::string("Tokyo");
+                return tz.str();
+          - lvgl.label.update:
+              id: system_orientation_value
+              text: !lambda |-
+                return id(flip_screen).state
+                         ? std::string("On")
+                         : std::string("Off");
+          - lvgl.label.update:
+              id: system_voltage_value
+              text: !lambda |-
+                char value[16];
+                if (id(vbus_voltage).has_state()) {
+                  snprintf(value, sizeof(value), "%.2fV", id(vbus_voltage).state);
+                } else {
+                  snprintf(value, sizeof(value), "--.--V");
+                }
+                return std::string(value);
+          - lvgl.label.update:
+              id: system_ssid_value
+              text: !lambda |-
+                const std::string ssid = id(wifi_ssid).state;
+                if (ssid.empty()) return id(wifi_mode).state;
+                return ssid.size() > 24 ? ssid.substr(0, 24) : ssid;
+          - lvgl.label.update:
+              id: system_ip_value
+              text: !lambda 'return id(ip_address).state;'
 
-                # Update edit indicator
-                - lvgl.label.update:
-                    id: humidity_edit_indicator
-                    text: !lambda |-
-                      return std::string(id(edit_mode) ? "[EDITING]" : " ");
-
-                # Back to menu if button 1 and not in edit mode
-                - if:
-                    condition:
-                      lambda: 'return button == 1 && !id(edit_mode);'
-                    then:
-                      - lvgl.page.show: bsettingsmenu
-                      - delay: 25ms
-                      - component.update: my_display
-
-          # Other settings pages - handle back button
-          - if:
-              condition:
-                lambda: |-
-                  return (id(ctempsettings).is_showing() ||
-                          id(elightsettings).is_showing() ||
-                          id(fairsettings).is_showing()) && button == 1;
-              then:
-                - lvgl.page.show: bsettingsmenu
-                - delay: 25ms
-                - component.update: my_display
-
-          # Final display update for non-navigation changes
-          - delay: 25ms
-          - component.update: my_display
+    - delay: 25ms
+    - component.update: my_display

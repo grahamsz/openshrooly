@@ -40,6 +40,15 @@ text_sensor:
       sorting_group_id: grp_humidity
       sorting_weight: 1
 
+  - platform: template
+    id: display_layout_status
+    name: "Display Layout Status"
+    internal: true
+    entity_category: diagnostic
+    update_interval: never
+    web_server:
+      sorting_group_id: grp_hidden
+
   # Calibration status display
   - platform: template
     name: "Calibration Status"

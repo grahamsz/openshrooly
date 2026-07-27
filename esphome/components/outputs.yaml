@@ -46,19 +46,20 @@ light:
 
 # Control Switches
 switch:
-  # Humidifier fan control via I2C
+  # Manual humidifier control; PWM timing runs on the coprocessor.
   - platform: template
     id: humidifier_fan
     name: "Humidifier Fan"
     optimistic: true
     turn_on_action:
       - lambda: |-
-          uint8_t data[2] = {0x00, 0x01};
+          const float requested = fmaxf(0.0f, fminf(100.0f, id(humidifier_speed).state));
+          uint8_t data[2] = {0x18, static_cast<uint8_t>(lroundf(requested))};
           bool err = id(bus_a).write(0x6C, data, 2);  // true = error
           if (err) {
             ESP_LOGE("humidifier", "TURN ON: write to 0x6C failed (NACK)");
             id(i2c_failure_count) = id(i2c_failure_count) + 1;
-            if (id(i2c_failure_count) >= 3) {
+            if (id(i2c_failure_count) == 3) {
               id(alert_beep_critical).execute();
             }
           } else {
@@ -68,12 +69,12 @@ switch:
           }
     turn_off_action:
       - lambda: |-
-          uint8_t data[2] = {0x00, 0x00};
+          uint8_t data[2] = {0x18, 0x00};
           bool err = id(bus_a).write(0x6C, data, 2);  // true = error
           if (err) {
             ESP_LOGE("humidifier", "TURN OFF: write to 0x6C failed (NACK)");
             id(i2c_failure_count) = id(i2c_failure_count) + 1;
-            if (id(i2c_failure_count) >= 3) {
+            if (id(i2c_failure_count) == 3) {
               id(alert_beep_critical).execute();
             }
           } else {

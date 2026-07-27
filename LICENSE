@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 OpenShrooly Contributors
+Copyright (c) 2025-2026 OpenShrooly Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,25 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-BINARY COMPONENTS LICENSE DISCLAIMER
-====================================
-
-IMPORTANT NOTICE: This project contains binary coprocessor firmware that was
-extracted from the original Shrooly device. The licensing terms for this
-binary firmware component are AMBIGUOUS and UNCLEAR.
-
-While the OpenShrooly project code is licensed under the MIT License above,
-users should be aware that:
-
-- The binary coprocessor firmware was reverse-engineered from the original
-  Shrooly device
-- The original manufacturer's licensing terms for this component are unknown
-- Use of this binary component may be subject to different licensing
-  restrictions
-- Users assume responsibility for compliance with any applicable licensing
-  terms
-
-If you have concerns about the licensing of the binary coprocessor firmware,
-please consult with appropriate legal counsel or consider using OpenShrooly
-without the extracted binary components.

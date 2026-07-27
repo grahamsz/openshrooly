@@ -15,6 +15,41 @@ switch:
     turn_off_action:
       - script.execute: temperature_control_manager
 
+  - platform: template
+    id: flip_screen
+    name: "Flip Screen"
+    icon: mdi:rotate-3d-variant
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    web_server:
+      sorting_group_id: grp_system
+      sorting_weight: 2
+    turn_on_action:
+      - lvgl.display.set_rotation:
+          rotation: 270
+      - script.execute:
+          id: apply_display_layout
+          flipped: true
+      - if:
+          condition:
+            lambda: 'return id(display_ready);'
+          then:
+            - delay: 50ms
+            - component.update: my_display
+    turn_off_action:
+      - lvgl.display.set_rotation:
+          rotation: 90
+      - script.execute:
+          id: apply_display_layout
+          flipped: false
+      - if:
+          condition:
+            lambda: 'return id(display_ready);'
+          then:
+            - delay: 50ms
+            - component.update: my_display
+
 number:
   - platform: template
     id: target_humidity
@@ -76,6 +111,13 @@ number:
       sorting_weight: 20
 
     set_action:
+      - if:
+          condition:
+            lambda: 'return id(humidifier_on_flag);'
+          then:
+            - script.execute:
+                id: humidifier_pwm_control
+                requested_duty: !lambda 'return x;'
       - script.execute: humidity_control_manager
 
 

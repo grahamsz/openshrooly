@@ -1,86 +1,135 @@
 # ========================================================================
-# TEMPERATURE SETTINGS SCREEN
-# Configure temperature thresholds
+# TEMPERATURE SETTINGS
 # ========================================================================
 
 - id: ctempsettings
   bg_color: paper_white
   widgets:
-    # Title
     - label:
-        text: "Temperature Settings"
+        text: "Temperature"
         align: TOP_MID
         y: 2
         text_font: font1
-
-    # Current temperature display
     - label:
         id: temp_current_label
         text: "Current: --.-°C"
         align: TOP_LEFT
         x: 10
-        y: 20
+        y: 16
         text_font: font1
 
-    # Minimum temperature setting
-    - obj:
-        id: temp_min_container
-        x: 10
-        y: 35
-        width: 276
-        height: 20
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "Min Temp:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: temp_min_value_label
-              text: "--.-°C"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
+    - label:
+        id: temp_enabled_carat
+        text: ">"
+        align: TOP_LEFT
+        x: 5
+        y: 29
+        text_font: font1
+    - label:
+        text: "Control"
+        align: TOP_LEFT
+        x: 17
+        y: 29
+        text_font: font1
+    - label:
+        id: temp_enabled_value
+        text: "OFF"
+        align: TOP_RIGHT
+        x: -10
+        y: 29
+        text_font: font1
 
-    # Maximum temperature setting
-    - obj:
-        id: temp_max_container
-        x: 10
-        y: 57
-        width: 276
-        height: 20
-        bg_color: paper_white
-        widgets:
-          - label:
-              text: "Max Temp:"
-              align: LEFT_MID
-              x: 0
-              text_font: font1
-          - label:
-              id: temp_max_value_label
-              text: "--.-°C"
-              align: RIGHT_MID
-              x: -10
-              text_font: font1
+    - label:
+        id: temp_target_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 42
+        text_font: font1
+    - label:
+        text: "Target"
+        align: TOP_LEFT
+        x: 17
+        y: 42
+        text_font: font1
+    - label:
+        id: temp_target_value
+        text: "--.-°C"
+        align: TOP_RIGHT
+        x: -10
+        y: 42
+        text_font: font1
 
-    # Selection indicator
-    - obj:
-        id: temp_selection_box
-        x: 8
-        y: 35
-        width: 280
-        height: 22
-        border_width: 2
-        border_color: paper_black
-        bg_opa: 0%
+    - label:
+        id: temp_hysteresis_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 55
+        text_font: font1
+    - label:
+        text: "Hysteresis"
+        align: TOP_LEFT
+        x: 17
+        y: 55
+        text_font: font1
+    - label:
+        id: temp_hysteresis_value
+        text: "--.--°C"
+        align: TOP_RIGHT
+        x: -10
+        y: 55
+        text_font: font1
 
-    # Button Bar - Navigation buttons (20px tall, no borders)
+    - label:
+        id: temp_warn_min_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 68
+        text_font: font1
+    - label:
+        text: "Warning low"
+        align: TOP_LEFT
+        x: 17
+        y: 68
+        text_font: font1
+    - label:
+        id: temp_warn_min_value
+        text: "--.-°C"
+        align: TOP_RIGHT
+        x: -10
+        y: 68
+        text_font: font1
+
+    - label:
+        id: temp_warn_max_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 81
+        text_font: font1
+    - label:
+        text: "Warning high"
+        align: TOP_LEFT
+        x: 17
+        y: 81
+        text_font: font1
+    - label:
+        id: temp_warn_max_value
+        text: "--.-°C"
+        align: TOP_RIGHT
+        x: -10
+        y: 81
+        text_font: font1
+
     - obj:
         x: 0
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
@@ -88,38 +137,43 @@
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 75
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
-              text: "-0.5"
+              id: temp_minus_label
+              text: "Off"
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 150
         y: 107
         width: 73
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:
-              text: "+0.5"
+              id: temp_plus_label
+              text: "On"
               align: CENTER
               text_color: paper_white
               text_font: font1
-
     - obj:
         x: 225
         y: 107
         width: 71
         height: 20
+        radius: 0
+        border_width: 0
         bg_color: paper_black
         widgets:
           - label:

@@ -14,7 +14,7 @@ select:
     restore_value: true
     initial_option: "America/Denver"  # Default timezone
     web_server:
-      sorting_group_id: grp_lights
+      sorting_group_id: grp_system
       sorting_weight: 1
     options:
       # North America

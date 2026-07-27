@@ -34,18 +34,18 @@ button:
             device->set_i2c_bus(id(bus_a));
             device->set_i2c_address(0x6C);
 
-            uint8_t data[4];
-            uint8_t regs[] = {0x03, 0x07, 0x0B, 0x0F};
-            uint32_t dry_values[4];
-            bool success = true;
+            uint8_t data[16];
+            uint32_t dry_values[4] = {0};
+            const bool success =
+              device->read_register(0x03, data, sizeof(data)) == i2c::ErrorCode::ERROR_OK;
 
-            for (int i = 0; i < 4; i++) {
-              if (!device->read_register(regs[i], data, 4)) {
-                dry_values[i] = (uint32_t)data[0] | ((uint32_t)data[1] << 8) |
-                               ((uint32_t)data[2] << 16) | ((uint32_t)data[3] << 24);
-              } else {
-                success = false;
-                break;
+            if (success) {
+              for (int i = 0; i < 4; i++) {
+                const int offset = i * 4;
+                dry_values[i] = (uint32_t)data[offset]
+                              | ((uint32_t)data[offset + 1] << 8)
+                              | ((uint32_t)data[offset + 2] << 16)
+                              | ((uint32_t)data[offset + 3] << 24);
               }
             }
 
@@ -56,10 +56,15 @@ button:
               id(water_cal_s3_dry) = dry_values[3];
 
               ESP_LOGI("calibration", "✅ DRY CALIBRATION COMPLETE!");
-              ESP_LOGI("calibration", "Dry values - S0:%u, S1:%u, S2:%u, S3:%u",
-                       dry_values[0], dry_values[1], dry_values[2], dry_values[3]);
+              ESP_LOGI("calibration", "Dry values - S0:%lu, S1:%lu, S2:%lu, S3:%lu",
+                       static_cast<unsigned long>(dry_values[0]),
+                       static_cast<unsigned long>(dry_values[1]),
+                       static_cast<unsigned long>(dry_values[2]),
+                       static_cast<unsigned long>(dry_values[3]));
               id(is_calibrated) = true;
               id(calibration_step) = 0;
+              id(water_calibration_generation)++;
+              id(water_level_calculator).execute();
             } else {
               ESP_LOGE("calibration", "Failed to read sensors!");
             }
@@ -86,6 +91,7 @@ button:
   # Reset calibration to defaults - returns to auto-calibration mode
   - platform: template
     name: "Reset Water Calibration"
+    id: reset_water_calibration_button
     icon: mdi:restore
     internal: true  # Prevents sync to Home Assistant
     web_server:
@@ -93,13 +99,24 @@ button:
       sorting_weight: 30
     on_press:
       - lambda: |-
-          // Reset to uncalibrated state
-          id(water_cal_s0_dry) = 0;
-          id(water_cal_s1_dry) = 0;
-          id(water_cal_s2_dry) = 0;
-          id(water_cal_s3_dry) = 0;
+          id(water_cal_s0_dry) = 42000;
+          id(water_cal_s1_dry) = 39470;
+          id(water_cal_s2_dry) = 38470;
+          id(water_cal_s3_dry) = 37395;
           id(is_calibrated) = false;
           id(calibration_step) = 0;
-          ESP_LOGW("calibration", "Calibration reset - using differential mode");
+          id(water_calibration_generation)++;
+          id(water_level_calculator).execute();
+          ESP_LOGW("calibration", "Calibration reset to built-in dry baselines");
+
+  - platform: template
+    name: "Recalibrate Touch Buttons"
+    icon: mdi:gesture-tap-button
+    entity_category: diagnostic
+    on_press:
+      - shrooly_touch.recalibrate: shrooly_touch_controller
+    web_server:
+      sorting_group_id: grp_hidden
+      sorting_weight: 2
 
 # Text sensor moved to components/text_sensors.yaml

@@ -1,6 +1,6 @@
 # ========================================================================
 # HUMIDIFIER EFFECTIVENESS ONE-TIME CHECK SCRIPT
-# Checks humidity increase exactly 2 minutes after being called
+# Allows the chamber to respond before checking the humidity trend.
 # ========================================================================
 
 - id: humidifier_effectiveness_check
@@ -9,8 +9,22 @@
   - lambda: |-
       // Save current humidity as start value before delay
       id(humidifier_start_humidity) = id(humidity).state;
-  - delay: 2min
+      id(humidity_not_rising_flag) = false;
+      id(alert_humidity_failure).publish_state(false);
+  - delay: 10min
   - lambda: |-
+      // A communication failure already explains the lack of humidity response.
+      // Avoid reporting a second, less useful effectiveness alert for it.
+      if (id(i2c_failure_count) > 2 || !id(humidifier_command_succeeded)) {
+        id(humidity_not_rising_flag) = false;
+        id(alert_humidity_failure).publish_state(false);
+        ESP_LOGW(
+          "humidifier_monitor",
+          "Skipping effectiveness check because the coprocessor command is not healthy"
+        );
+        return;
+      }
+
       if (id(humidifier_on_flag)) {
         float current_humidity = id(humidity).state;
         float start_humidity = id(humidifier_start_humidity);
@@ -19,8 +33,9 @@
         // Set alert flag if humidity hasn't risen at all or has decreased
         if (humidity_increase <= 0.0f) {
           id(humidity_not_rising_flag) = true;
+          id(alert_humidity_failure).publish_state(true);
           ESP_LOGW("humidifier_monitor",
-                   "⚠️  Humidifier ON for 2 minutes but humidity unchanged: %.1f%% → %.1f%% (change: %+.1f%%)",
+                   "Humidifier ON for 10 minutes but humidity has not risen: %.1f%% → %.1f%% (change: %+.1f%%)",
                    start_humidity, current_humidity, humidity_increase);
           // Beep for warning
           id(alert_beep_warning).execute();
@@ -28,18 +43,21 @@
         // Clear alert for small increases
         else if (humidity_increase < 1.0f) {
           id(humidity_not_rising_flag) = false;
+          id(alert_humidity_failure).publish_state(false);
           ESP_LOGI("humidifier_monitor",
-                   "ℹ️  Humidifier working slowly: %.1f%% → %.1f%% over 2 minutes (+%.1f%%)",
+                   "Humidifier working slowly: %.1f%% → %.1f%% over 10 minutes (+%.1f%%)",
                    start_humidity, current_humidity, humidity_increase);
         }
         // Clear alert for good increases
         else {
           id(humidity_not_rising_flag) = false;
+          id(alert_humidity_failure).publish_state(false);
           ESP_LOGI("humidifier_monitor",
-                   "Humidifier effective: %.1f%% → %.1f%% over 2 minutes (+%.1f%%)",
+                   "Humidifier effective: %.1f%% → %.1f%% over 10 minutes (+%.1f%%)",
                    start_humidity, current_humidity, humidity_increase);
         }
       } else {
         // Clear alert if humidifier is off
         id(humidity_not_rising_flag) = false;
+        id(alert_humidity_failure).publish_state(false);
       }

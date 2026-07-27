@@ -1,26 +1,94 @@
 # ========================================================================
-# BUTTON CONFIGURATION
-# Touch capacitive buttons and their hardware sensors
-# NOTE: Button binary sensors moved to alerts_simple.yaml to avoid duplicate sections
+# ADAPTIVE TOUCH BUTTONS
 # ========================================================================
 
-button:
-  # Regular Action Button
-  - platform: restart
-    id: restart_button
-    name: "Restart OpenShrooly"
-    entity_category: diagnostic
+shrooly_touch:
+  id: shrooly_touch_controller
+  sample_interval: 5ms
+  warmup_duration: 1s
+  calibration_samples: 128
+  minimum_threshold: 1.2
+  noise_multiplier: 8.0
 
-# I2C configuration (Bus A - for capacitive touch inputs)
-i2c:
-  - id: bus_a
-    sda: GPIO3
-    scl: GPIO4
-    scan: true
-    frequency: 100kHz
+  buttons:
+    - id: button_1
+      name: "Button 1"
+      internal: true
+      on_press:
+        - script.execute:
+            id: touch_button_blip
+            button: !lambda 'return id(flip_screen).state ? 4 : 1;'
+        - script.execute:
+            id: ui_navigation_handler
+            button: !lambda 'return id(flip_screen).state ? 4 : 1;'
 
-# Touch Capacitive Sensors (AT42QT1010 chips)
-esp32_touch:
-  setup_mode: false
+    - id: button_2
+      name: "Button 2"
+      internal: true
+      on_press:
+        - script.execute:
+            id: touch_button_blip
+            button: !lambda 'return id(flip_screen).state ? 3 : 2;'
+        - script.execute:
+            id: ui_navigation_handler
+            button: !lambda 'return id(flip_screen).state ? 3 : 2;'
 
-# NOTE: Touch sensors moved to sensors.yaml to avoid duplicate sensor: sections
+    - id: button_3
+      name: "Button 3"
+      internal: true
+      on_press:
+        - script.execute:
+            id: touch_button_blip
+            button: !lambda 'return id(flip_screen).state ? 2 : 3;'
+        - script.execute:
+            id: ui_navigation_handler
+            button: !lambda 'return id(flip_screen).state ? 2 : 3;'
+
+    - id: button_4
+      name: "Button 4"
+      internal: true
+      on_press:
+        - script.execute:
+            id: touch_button_blip
+            button: !lambda 'return id(flip_screen).state ? 1 : 4;'
+        - script.execute:
+            id: ui_navigation_handler
+            button: !lambda 'return id(flip_screen).state ? 1 : 4;'
+
+  raw_sensors:
+    - { id: touch_1_raw, name: "Touch 1 Raw" }
+    - { id: touch_2_raw, name: "Touch 2 Raw" }
+    - { id: touch_3_raw, name: "Touch 3 Raw" }
+    - { id: touch_4_raw, name: "Touch 4 Raw" }
+
+  baseline_sensors:
+    - { id: touch_1_baseline, name: "Touch 1 Baseline" }
+    - { id: touch_2_baseline, name: "Touch 2 Baseline" }
+    - { id: touch_3_baseline, name: "Touch 3 Baseline" }
+    - { id: touch_4_baseline, name: "Touch 4 Baseline" }
+
+  delta_sensors:
+    - { id: touch_1_delta, name: "Touch 1 Delta" }
+    - { id: touch_2_delta, name: "Touch 2 Delta" }
+    - { id: touch_3_delta, name: "Touch 3 Delta" }
+    - { id: touch_4_delta, name: "Touch 4 Delta" }
+
+  noise_sensors:
+    - { id: touch_1_noise, name: "Touch 1 Noise" }
+    - { id: touch_2_noise, name: "Touch 2 Noise" }
+    - { id: touch_3_noise, name: "Touch 3 Noise" }
+    - { id: touch_4_noise, name: "Touch 4 Noise" }
+
+  threshold_sensors:
+    - { id: touch_1_threshold, name: "Touch 1 Threshold" }
+    - { id: touch_2_threshold, name: "Touch 2 Threshold" }
+    - { id: touch_3_threshold, name: "Touch 3 Threshold" }
+    - { id: touch_4_threshold, name: "Touch 4 Threshold" }
+
+  backend:
+    id: touch_backend
+    name: "Touch Backend"
+
+  calibration_status:
+    id: touch_calibration_status
+    name: "Touch Calibration Status"

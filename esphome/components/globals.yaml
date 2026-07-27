@@ -5,15 +5,10 @@ globals:
     restore_value: no
     initial_value: '0'
 
-  - id: humidity_selection
+  - id: settings_selection
     type: int
     restore_value: no
     initial_value: '0'
-
-  - id: edit_mode
-    type: bool
-    restore_value: no
-    initial_value: 'false'
 
   - id: page_just_changed
     type: bool
@@ -43,6 +38,23 @@ globals:
   - id: humidifier_on_flag
     type: bool
     restore_value: no  # Don't restore - let control manager decide at boot
+    initial_value: 'false'
+
+  # The RP2040 is reflashed during startup. Humidity control must wait until
+  # that reset is complete or its first duty command can be silently lost.
+  - id: coprocessor_ready
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  - id: humidifier_command_duty
+    type: uint8_t
+    restore_value: no
+    initial_value: '0'
+
+  - id: humidifier_command_succeeded
+    type: bool
+    restore_value: no
     initial_value: 'false'
 
   # Humidifier monitoring variables
@@ -84,16 +96,10 @@ globals:
     restore_value: no
     initial_value: '0'
 
-  # Variables for humidifier PWM control
-  - id: humidifier_pwm_on_time
-    type: int
+  - id: water_calibration_generation
+    type: uint32_t
     restore_value: no
-    initial_value: '750'
-
-  - id: humidifier_pwm_off_time
-    type: int
-    restore_value: no
-    initial_value: '250'
+    initial_value: '0'
 
   # Alert tracking globals
   - id: active_alert_count
@@ -159,20 +165,12 @@ globals:
     type: bool
     initial_value: 'true'
 
-  # Button state globals for touch monitoring
-  - id: button_1_state
+  - id: display_ready
     type: bool
+    restore_value: no
     initial_value: 'false'
 
-  - id: button_2_state
+  - id: display_layout_flipped
     type: bool
+    restore_value: no
     initial_value: 'false'
-
-  - id: button_3_state
-    type: bool
-    initial_value: 'false'
-
-  - id: button_4_state
-    type: bool
-    initial_value: 'false'
-

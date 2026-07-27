@@ -39,8 +39,15 @@ lvgl:
 
   # Show aaaa page when LVGL is ready
   on_ready:
+    - lvgl.display.set_rotation:
+        rotation: !lambda |-
+          return id(flip_screen).state ? 270 : 90;
     - lambda: |-
+        id(display_ready) = true;
         ESP_LOGI("lvgl", "LVGL ready, showing aaaa page");
+    - script.execute:
+        id: apply_display_layout
+        flipped: !lambda 'return id(flip_screen).state;'
     - delay: 100ms  # Reduced from 500ms for faster response
     - lvgl.page.show: aaaa
     - delay: 100ms  # Small delay between page show and update

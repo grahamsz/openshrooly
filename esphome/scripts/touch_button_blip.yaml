@@ -1,0 +1,21 @@
+- id: touch_button_blip
+  mode: single
+  parameters:
+    button: int
+  then:
+    - rtttl.stop:
+        id: buzzer
+    - rtttl.play: !lambda |-
+        switch (button) {
+          case 1:
+            return std::string("b1:d=1,o=5,b=60:c");
+          case 2:
+            return std::string("b2:d=1,o=5,b=60:e");
+          case 3:
+            return std::string("b3:d=1,o=5,b=60:g");
+          default:
+            return std::string("b4:d=1,o=6,b=60:c");
+        }
+    - delay: 35ms
+    - rtttl.stop:
+        id: buzzer

@@ -11,31 +11,44 @@
       static float readings[5] = {0};
       static int reading_index = 0;
       static bool first_reading = true;
+      static uint32_t last_calibration_generation = UINT32_MAX;
+
+      if (last_calibration_generation != id(water_calibration_generation)) {
+        reading_index = 0;
+        first_reading = true;
+        last_calibration_generation = id(water_calibration_generation);
+      }
 
       // Differential water level detection algorithm
       auto device = new i2c::I2CDevice();
       device->set_i2c_bus(id(bus_a));
       device->set_i2c_address(0x6C);
 
-      // I2C Memory Map addresses for sensors
-      uint8_t regs[] = {0x03, 0x07, 0x0B, 0x0F};  // Empty, Low, Mid, High
-      uint32_t sensor_vals[4] = {0};
-      uint8_t data[4];
+      uint32_t sensor_vals[5] = {0};
+      uint8_t data[22];
 
-      // 1. Read 32-bit values from each sensor
-      for (int i = 0; i < 4; i++) {
-        if (device->read_register(regs[i], data, 4)) { // note true and false seem to be flipped!
-          ESP_LOGW("water", "Read failed at 0x%02X", regs[i]);
-          delete device;
-          id(water_level_percent).publish_state(NAN);
-          return;
-        }
-        // Little-endian 32-bit value
-        sensor_vals[i] = (uint32_t)data[0]
-                       | ((uint32_t)data[1] << 8)
-                       | ((uint32_t)data[2] << 16)
-                       | ((uint32_t)data[3] << 24);
+      // The five little-endian readings, protocol version, and duty are contiguous.
+      if (device->read_register(0x03, data, sizeof(data))) {
+        ESP_LOGW("water", "Capacitance read failed");
+        delete device;
+        id(water_level_percent).publish_state(NAN);
+        return;
       }
+      for (int i = 0; i < 5; i++) {
+        const int offset = i * 4;
+        sensor_vals[i] = (uint32_t)data[offset]
+                       | ((uint32_t)data[offset + 1] << 8)
+                       | ((uint32_t)data[offset + 2] << 16)
+                       | ((uint32_t)data[offset + 3] << 24);
+      }
+
+      id(water_cap_empty).publish_state(sensor_vals[0]);
+      id(water_cap_low).publish_state(sensor_vals[1]);
+      id(water_cap_mid).publish_state(sensor_vals[2]);
+      id(water_cap_high).publish_state(sensor_vals[3]);
+      id(water_cap_overflow).publish_state(sensor_vals[4]);
+      id(coprocessor_protocol_version).publish_state(data[20]);
+      id(humidifier_coprocessor_duty).publish_state(data[21]);
 
       // Determine water level - always use calibration values (defaults or user-set)
       float water_level;

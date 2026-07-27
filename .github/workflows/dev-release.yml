@@ -95,14 +95,25 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install RP2040 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-arm-none-eabi libnewlib-arm-none-eabi
+
+      - name: Build and embed RP2040 coprocessor
+        run: |
+          cmake -S coprocessor -B coprocessor/build -G Ninja \
+            -DPICO_SDK_FETCH_FROM_GIT=ON \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build coprocessor/build --parallel
+          python3 coprocessor/embed_firmware.py \
+            coprocessor/build/src/openshrooly_coprocessor.bin \
+            esphome/external_components/swd_programmer/firmware.h
+
       - name: Determine build ID
         id: build_id
         run: |
-          SHA="${{ github.sha }}"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            SHA="${{ github.event.pull_request.head.sha }}"
-          fi
-          BUILD_ID="${SHA:0:12}"
+          BUILD_ID="openshrooly"
           echo "Using build id: ${BUILD_ID}"
           echo "build_id=${BUILD_ID}" >> "$GITHUB_OUTPUT"
 
@@ -186,6 +197,7 @@ jobs:
           prerelease: false
           replace_assets: true
           make_latest: true
+          generate_release_notes: true
           files: |
             ${{ steps.build.outputs.name }}/${{ steps.build.outputs.name }}.factory.bin
             ${{ steps.build.outputs.name }}/${{ steps.build.outputs.name }}.ota.bin

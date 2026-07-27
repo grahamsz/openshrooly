@@ -20,7 +20,10 @@ export default function Dashboard() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [modal, setModal] = useState<ModalState>({ type: null })
   const [timezone, setTimezone] = useState<string>('America/Denver')
+  const [flipScreen, setFlipScreen] = useState(false)
   const [calibrationSuccess, setCalibrationSuccess] = useState(false)
+  const [calibrationBusy, setCalibrationBusy] = useState(false)
+  const [calibrationError, setCalibrationError] = useState('')
   const [lightSunrise, setLightSunrise] = useState<number>(8)
   const [lightSunset, setLightSunset] = useState<number>(20)
   const [lightDuration, setLightDuration] = useState<number>(12)
@@ -55,6 +58,13 @@ export default function Dashboard() {
         // Ignore errors during initial fetch - EventSource will populate data
       }
 
+      try {
+        const flip = await api.getSwitch('flip_screen')
+        if (flip) setFlipScreen(flip.state === 'ON' || flip.value === true)
+      } catch (e) {
+        // Ignore errors during initial fetch - EventSource will populate data
+      }
+
       setLoading(false)
     }
 
@@ -74,6 +84,9 @@ export default function Dashboard() {
         // Update timezone from events
         if (event.id === 'select-timezone') {
           setTimezone(event.state)
+        }
+        if (event.id === 'switch-flip_screen') {
+          setFlipScreen(event.state === 'ON' || event.value === true)
         }
       }
     })
@@ -100,8 +113,49 @@ export default function Dashboard() {
     }, 300)
   }, [])
 
-  const handleButtonClick = async (buttonId: string) => {
-    await api.pressButton(buttonId)
+  const runWaterCalibration = async () => {
+    if (calibrationBusy) return
+
+    setCalibrationBusy(true)
+    setCalibrationError('')
+
+    try {
+      await api.pressButton('cancel_calibration')
+      const warningAccepted = await api.pressButton('calibrate_dry_tank')
+      if (!warningAccepted) throw new Error('Could not start calibration')
+
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      const calibrated = await api.pressButton('calibrate_dry_tank')
+      if (!calibrated) throw new Error('Could not save calibration')
+
+      setEntities((prev) => ({
+        ...prev,
+        'binary_sensor-water_calibrated': { value: true, state: 'ON' },
+      }))
+      setCalibrationSuccess(true)
+      setTimeout(() => setCalibrationSuccess(false), 10000)
+      setModal({ type: 'water' })
+    } catch (error) {
+      setCalibrationError(error instanceof Error ? error.message : 'Calibration failed')
+    } finally {
+      setCalibrationBusy(false)
+    }
+  }
+
+  const resetWaterCalibration = async () => {
+    setCalibrationError('')
+    const reset = await api.pressButton('reset_water_calibration')
+    if (!reset) {
+      setCalibrationError('Could not reset calibration')
+      return
+    }
+
+    setCalibrationSuccess(false)
+    setEntities((prev) => ({
+      ...prev,
+      'binary_sensor-water_calibrated': { value: false, state: 'OFF' },
+    }))
   }
 
   const handleSwitchChange = async (id: string, checked: boolean) => {
@@ -121,6 +175,11 @@ export default function Dashboard() {
   const handleTimezoneChange = async (tz: string) => {
     setTimezone(tz)
     await handleSelectChange('timezone', tz)
+  }
+
+  const handleFlipScreenChange = async (flipped: boolean) => {
+    setFlipScreen(flipped)
+    await api.setSwitch('flip_screen', flipped)
   }
 
   const handleOtaUpload = async () => {
@@ -459,7 +518,7 @@ export default function Dashboard() {
 
   // Check for active alerts
   const alerts = [
-    { id: 'humidity_control_failure', msg: 'Humidity control failure' },
+    { id: 'humidity_control_failure', msg: 'Humidity has not risen after 10 minutes' },
     { id: 'i2c_communication_failure', msg: 'Sensor communication error' },
     { id: 'fan_start_failure', msg: 'Fan failed to start' },
     { id: 'temperature_too_low', msg: 'Temperature too low' },
@@ -619,7 +678,7 @@ export default function Dashboard() {
         <div className="card card-settings" onClick={() => setModal({ type: 'settings' })}>
           <div className="card-icon">⚙️</div>
           <div className="card-label">Settings</div>
-          <div className="card-value">v0.9.1</div>
+          <div className="card-value">v1.0.0</div>
           <div className="card-detail">System & Network</div>
         </div>
       </div>
@@ -665,26 +724,31 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {!isCalibrated && (
-                <>
-                  <button
-                    className="calibrate-button"
-                    onClick={() => {
-                      setModal({ type: 'calibrate' })
-                    }}
-                  >
-                    Calibrate Water Level
-                  </button>
-
-                  <div className="calibrate-info">
-                    Calibration sets the "dry tank" baseline for accurate water level measurement.
-                  </div>
-                </>
-              )}
+              <button
+                className="calibrate-button"
+                onClick={() => {
+                  setCalibrationError('')
+                  setModal({ type: 'calibrate' })
+                }}
+              >
+                {isCalibrated ? 'Recalibrate Dry Tank' : 'Calibrate Water Level'}
+              </button>
 
               {isCalibrated && (
-                <div className="calibrate-info" style={{ marginTop: '1rem', color: '#4ade80' }}>
-                  ✓ Sensor is calibrated
+                <button className="modal-cancel" style={{ width: '100%', marginBottom: '12px' }} onClick={resetWaterCalibration}>
+                  Reset to Built-in Defaults
+                </button>
+              )}
+
+              <div className="calibrate-info" style={isCalibrated ? { color: '#4ade80' } : undefined}>
+                {isCalibrated
+                  ? '✓ Sensor is calibrated'
+                  : 'Calibration sets the dry-tank baseline for accurate water-level measurement.'}
+              </div>
+
+              {calibrationError && (
+                <div className="water-warning" style={{ marginTop: '12px' }}>
+                  {calibrationError}
                 </div>
               )}
             </div>
@@ -706,8 +770,9 @@ export default function Dashboard() {
                 This will set the current sensor readings as the "dry" baseline for accurate water level measurement.
               </p>
               <p className="calibrate-instruction">
-                <strong>Note:</strong> You will need to press the calibration button TWICE to confirm - once for a warning, then again to actually calibrate.
+                The reading will update immediately after calibration.
               </p>
+              {calibrationError && <p className="calibrate-warning">{calibrationError}</p>}
             </div>
             <div className="modal-buttons">
               <button className="modal-cancel" onClick={() => setModal({ type: null })}>
@@ -715,19 +780,10 @@ export default function Dashboard() {
               </button>
               <button
                 className="modal-confirm"
-                onClick={() => {
-                  // Press once to warn, press again to calibrate
-                  handleButtonClick('calibrate_dry_tank')
-                  // Press second time after short delay
-                  setTimeout(() => {
-                    handleButtonClick('calibrate_dry_tank')
-                    setCalibrationSuccess(true)
-                    setTimeout(() => setCalibrationSuccess(false), 10000)
-                  }, 500)
-                  setModal({ type: 'water' })
-                }}
+                disabled={calibrationBusy}
+                onClick={runWaterCalibration}
               >
-                Start Calibration
+                {calibrationBusy ? 'Calibrating…' : 'Calibrate Empty Tank'}
               </button>
             </div>
           </div>
@@ -1317,7 +1373,7 @@ export default function Dashboard() {
                 <div className="settings-info">
                   <div className="info-row">
                     <span className="info-label">Version:</span>
-                    <span className="info-value">0.9.1</span>
+                    <span className="info-value">1.0.0</span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Voltage:</span>
@@ -1345,7 +1401,17 @@ export default function Dashboard() {
               </div>
 
               <div className="settings-section">
-                <h3>Time & Location</h3>
+                <h3>Display & Time</h3>
+                <div className="control-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={flipScreen}
+                      onChange={(e) => handleFlipScreenChange(e.target.checked)}
+                    />
+                    <span style={{ marginLeft: '8px' }}>Flip screen</span>
+                  </label>
+                </div>
                 <div className="control-group">
                   <label>Timezone</label>
                   <select
@@ -1450,25 +1516,10 @@ export default function Dashboard() {
             <h2>MIT License</h2>
             <div className="modal-content">
               <div className="license-text">
-                <p>Copyright (c) 2025 OpenShrooly</p>
+                <p>Copyright (c) 2025-2026 OpenShrooly Contributors</p>
                 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
                 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
                 <p><strong>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</strong></p>
-
-                <h3 style={{ marginTop: '24px', fontSize: '18px', fontWeight: '600' }}>Binary Components License Disclaimer</h3>
-                <p style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fff3cd', border: '1px solid #ffc107', borderRadius: '6px', color: '#856404' }}>
-                  <strong>⚠️ IMPORTANT NOTICE:</strong> This project contains binary coprocessor firmware that was extracted from the original Shrooly device. The licensing terms for this binary firmware component are <strong>AMBIGUOUS and UNCLEAR</strong>.
-                </p>
-                <p style={{ marginTop: '12px' }}>While the OpenShrooly project code is licensed under the MIT License above, users should be aware that:</p>
-                <ul style={{ marginLeft: '20px', marginTop: '8px' }}>
-                  <li>The binary coprocessor firmware was reverse-engineered from the original Shrooly device</li>
-                  <li>The original manufacturer's licensing terms for this component are unknown</li>
-                  <li>Use of this binary component may be subject to different licensing restrictions</li>
-                  <li>Users assume responsibility for compliance with any applicable licensing terms</li>
-                </ul>
-                <p style={{ marginTop: '12px', fontSize: '14px', color: '#64748b' }}>
-                  If you have concerns about the licensing of the binary coprocessor firmware, please consult with appropriate legal counsel or consider using OpenShrooly without the extracted binary components.
-                </p>
               </div>
             </div>
           </div>

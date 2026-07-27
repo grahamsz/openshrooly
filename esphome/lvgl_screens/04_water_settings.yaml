@@ -1,99 +1,79 @@
 # ========================================================================
-# HUMIDITY SETTINGS
+# WATER CALIBRATION
 # ========================================================================
 
-- id: dhumiditysettings
+- id: gwatercalibration
   bg_color: paper_white
   widgets:
     - label:
-        text: "Humidity"
+        text: "Water Calibration"
         align: TOP_MID
         y: 2
         text_font: font1
     - label:
-        id: humidity_current_label
-        text: "Current: --.-%"
+        id: water_level_label
+        text: "Level: ---%"
         align: TOP_LEFT
         x: 10
         y: 18
         text_font: font1
     - label:
-        id: humidity_water_label
-        text: "Water: ---%"
-        align: TOP_RIGHT
-        x: -10
-        y: 18
-        text_font: font1
-
-    - label:
-        id: humidity_target_carat
-        text: ">"
-        align: TOP_LEFT
-        x: 5
-        y: 38
-        text_font: font1
-    - label:
-        text: "Target"
-        align: TOP_LEFT
-        x: 17
-        y: 38
-        text_font: font1
-    - label:
-        id: humidity_target_value
-        text: "--.-%"
-        align: TOP_RIGHT
-        x: -10
-        y: 38
-        text_font: font1
-
-    - label:
-        id: humidity_hysteresis_carat
-        text: " "
-        align: TOP_LEFT
-        x: 5
-        y: 55
-        text_font: font1
-    - label:
-        text: "Hysteresis"
-        align: TOP_LEFT
-        x: 17
-        y: 55
-        text_font: font1
-    - label:
-        id: humidity_hysteresis_value
-        text: "--.--%"
-        align: TOP_RIGHT
-        x: -10
-        y: 55
-        text_font: font1
-
-    - label:
-        id: humidity_speed_carat
-        text: " "
-        align: TOP_LEFT
-        x: 5
-        y: 72
-        text_font: font1
-    - label:
-        text: "Humidifier speed"
-        align: TOP_LEFT
-        x: 17
-        y: 72
-        text_font: font1
-    - label:
-        id: humidity_speed_value
-        text: "---%"
-        align: TOP_RIGHT
-        x: -10
-        y: 72
-        text_font: font1
-
-    - label:
-        id: humidity_status_label
+        id: water_status_label
         text: "Status: --"
         align: TOP_LEFT
         x: 10
-        y: 89
+        y: 32
+        text_font: font1
+
+    - label:
+        id: water_calibrate_carat
+        text: ">"
+        align: TOP_LEFT
+        x: 5
+        y: 51
+        text_font: font1
+    - label:
+        id: water_calibrate_action
+        text: "Calibrate empty tank"
+        align: TOP_LEFT
+        x: 17
+        y: 51
+        text_font: font1
+
+    - label:
+        id: water_reset_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 67
+        text_font: font1
+    - label:
+        text: "Reset water calibration"
+        align: TOP_LEFT
+        x: 17
+        y: 67
+        text_font: font1
+
+    - label:
+        id: water_touch_carat
+        text: " "
+        align: TOP_LEFT
+        x: 5
+        y: 83
+        text_font: font1
+    - label:
+        text: "Recalibrate touch"
+        align: TOP_LEFT
+        x: 17
+        y: 83
+        text_font: font1
+
+    - label:
+        id: water_action_hint
+        text: "Tank must be completely empty"
+        align: TOP_LEFT
+        x: 10
+        y: 96
         text_font: font1
 
     - obj:
@@ -120,7 +100,7 @@
         bg_color: paper_black
         widgets:
           - label:
-              text: "-"
+              text: "Up"
               align: CENTER
               text_color: paper_white
               text_font: font1
@@ -134,7 +114,7 @@
         bg_color: paper_black
         widgets:
           - label:
-              text: "+"
+              text: "Down"
               align: CENTER
               text_color: paper_white
               text_font: font1
@@ -148,7 +128,7 @@
         bg_color: paper_black
         widgets:
           - label:
-              text: "Next"
+              text: "Run"
               align: CENTER
               text_color: paper_white
               text_font: font1
