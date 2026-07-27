@@ -100,6 +100,14 @@ jobs:
             esphome/external_components/web_server/static_files.h \
             esphome/external_components/web_server/static_files.cpp
 
+      - name: Upload dashboard output for failed verification
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-verification-${{ github.sha }}
+          path: webapp/out
+          retention-days: 7
+
       - name: Validate configuration
         run: esphome config esphome/openshrooly.yaml
 
