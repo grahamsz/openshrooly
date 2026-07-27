@@ -6,6 +6,8 @@ This creates the C++ code to serve all the static assets.
 
 import gzip
 import os
+import re
+import sys
 from pathlib import Path
 from html.parser import HTMLParser
 
@@ -22,6 +24,7 @@ class AssetReferenceParser(HTMLParser):
         url = attributes.get("src") if tag == "script" else attributes.get("href")
         if url and url.startswith("/") and not url.startswith("//"):
             self.urls.append(url.split("?", 1)[0].split("#", 1)[0])
+
 
 def find_static_files(webapp_out_dir):
     """Find exactly the assets referenced by the exported dashboard HTML."""
@@ -47,6 +50,120 @@ def find_static_files(webapp_out_dir):
         print(f"Found asset: {relative_path}")
 
     return static_files
+
+
+def verify_embedded_files(webapp_out_dir, input_header, input_cpp):
+    """Verify that embedded gzip streams expand to the exported dashboard assets.
+
+    The exact DEFLATE stream produced by Python's gzip module can vary with the
+    linked zlib version. Comparing expanded content keeps this check portable
+    while still catching stale, missing, reordered, or incorrectly mapped files.
+    """
+    webapp_path = Path(webapp_out_dir)
+    static_files = find_static_files(webapp_out_dir)
+    header_content = Path(input_header).read_text(encoding="utf-8")
+    cpp_content = Path(input_cpp).read_text(encoding="utf-8")
+
+    data_matches = {
+        int(index): payload
+        for index, payload in re.findall(
+            r"const uint8_t STATIC_FILE_(\d+)_DATA\[\] PROGMEM = "
+            r"\{([^}]*)\};",
+            cpp_content,
+            re.DOTALL,
+        )
+    }
+    size_matches = {
+        int(index): int(size)
+        for index, size in re.findall(
+            r"const size_t STATIC_FILE_(\d+)_SIZE = (\d+);", cpp_content
+        )
+    }
+    mapping_matches = {
+        int(index): (content_type, url)
+        for index, content_type, url in re.findall(
+            r"\{STATIC_FILE_(\d+)_DATA, STATIC_FILE_\1_SIZE, "
+            r'"([^"]+)", "([^"]+)"\}',
+            cpp_content,
+        )
+    }
+    declared_data = {
+        int(index)
+        for index in re.findall(
+            r"extern const uint8_t STATIC_FILE_(\d+)_DATA\[\];", header_content
+        )
+    }
+    declared_sizes = {
+        int(index)
+        for index in re.findall(
+            r"extern const size_t STATIC_FILE_(\d+)_SIZE;", header_content
+        )
+    }
+
+    expected_indexes = set(range(len(static_files)))
+    parsed_indexes = set(data_matches)
+    errors = []
+    if parsed_indexes != expected_indexes:
+        errors.append(
+            f"data indexes are {sorted(parsed_indexes)}, expected "
+            f"{sorted(expected_indexes)}"
+        )
+    if set(size_matches) != expected_indexes:
+        errors.append("embedded size declarations do not match the asset list")
+    if set(mapping_matches) != expected_indexes:
+        errors.append("embedded URL mappings do not match the asset list")
+    if declared_data != expected_indexes or declared_sizes != expected_indexes:
+        errors.append("header declarations do not match the asset list")
+
+    count_match = re.search(
+        r"const size_t STATIC_FILES_COUNT = (\d+);", cpp_content
+    )
+    if not count_match or int(count_match.group(1)) != len(static_files):
+        errors.append("STATIC_FILES_COUNT does not match the asset list")
+
+    content_types = {
+        ".css": "text/css",
+        ".ico": "image/x-icon",
+        ".js": "application/javascript",
+    }
+
+    for index, file_path in enumerate(static_files):
+        if index not in data_matches:
+            continue
+
+        tokens = re.findall(r"0x([0-9a-fA-F]{2})", data_matches[index])
+        compressed = bytes(int(token, 16) for token in tokens)
+        if size_matches.get(index) != len(compressed):
+            errors.append(f"{file_path}: embedded size is incorrect")
+            continue
+
+        try:
+            embedded_data = gzip.decompress(compressed)
+        except (gzip.BadGzipFile, EOFError, OSError) as error:
+            errors.append(f"{file_path}: invalid gzip stream ({error})")
+            continue
+
+        expected_data = (webapp_path / file_path).read_bytes()
+        if embedded_data != expected_data:
+            errors.append(f"{file_path}: embedded content is stale")
+
+        expected_mapping = (
+            content_types.get(Path(file_path).suffix, "application/octet-stream"),
+            f"/{file_path}",
+        )
+        if mapping_matches.get(index) != expected_mapping:
+            errors.append(f"{file_path}: content type or URL mapping is incorrect")
+
+    if errors:
+        raise ValueError(
+            "Embedded dashboard verification failed:\n- " + "\n- ".join(errors)
+        )
+
+    print(
+        f"Verified {len(static_files)} embedded dashboard assets "
+        f"against {webapp_path}"
+    )
+
 
 def generate_embedded_files(webapp_out_dir, output_header, output_cpp):
     """Generate header and cpp files with embedded static assets."""
@@ -148,10 +265,13 @@ namespace web_server {
 
 
 if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) != 4:
-        print("Usage: embed_static_files.py <webapp_out_dir> <output.h> <output.cpp>")
+    if len(sys.argv) == 5 and sys.argv[1] == "--check":
+        verify_embedded_files(sys.argv[2], sys.argv[3], sys.argv[4])
+    elif len(sys.argv) == 4:
+        generate_embedded_files(sys.argv[1], sys.argv[2], sys.argv[3])
+    else:
+        print(
+            "Usage: embed_static_files.py [--check] "
+            "<webapp_out_dir> <output.h> <output.cpp>"
+        )
         sys.exit(1)
-
-    generate_embedded_files(sys.argv[1], sys.argv[2], sys.argv[3])

@@ -92,20 +92,13 @@ jobs:
           echo "NEXT_BUILD_ID=$NEXT_BUILD_ID"
           npm run build
 
-      - name: Embed static assets
-        run: |
-          cd esphome
-          python3 external_components/web_server/embed_static_files.py ../webapp/out external_components/web_server/static_files.h external_components/web_server/static_files.cpp
-
       - name: Verify embedded assets are current
         run: |
-          if ! git diff --quiet -- esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp; then
-            echo "::error::Embedded dashboard assets differ from repository state. Rerun the embed script and commit the generated files."
-            git --no-pager diff --stat -- esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp
-            git --no-pager diff -U3 -- esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp | head -n 200
-            git status --short esphome/external_components/web_server/static_files.h esphome/external_components/web_server/static_files.cpp
-            exit 1
-          fi
+          python3 esphome/external_components/web_server/embed_static_files.py \
+            --check \
+            webapp/out \
+            esphome/external_components/web_server/static_files.h \
+            esphome/external_components/web_server/static_files.cpp
 
       - name: Validate configuration
         run: esphome config esphome/openshrooly.yaml
