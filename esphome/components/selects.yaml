@@ -96,110 +96,119 @@ select:
     on_value:
       then:
         - lambda: |-
-            // Set the timezone directly using the IANA timezone string
-            std::string tz = x;
-            id(sntp_time).set_timezone(tz.c_str());
+            // Convert the persisted IANA value to the POSIX format required by ESPHome.
+            struct TimezoneMapping {
+              const char *iana;
+              const char *posix;
+            };
 
-            // Also set the system TZ environment variable for localtime_r to work
-            // Convert IANA timezone to POSIX TZ format for ESP32
-            // This is a simplified mapping - add more as needed
-            std::string posix_tz;
-            if (tz == "America/Denver") {
-              posix_tz = "MST7MDT,M3.2.0,M11.1.0";  // Mountain Time with DST
-            } else if (tz == "America/New_York") {
-              posix_tz = "EST5EDT,M3.2.0,M11.1.0";  // Eastern Time with DST
-            } else if (tz == "America/Los_Angeles") {
-              posix_tz = "PST8PDT,M3.2.0,M11.1.0";  // Pacific Time with DST
-            } else if (tz == "America/Chicago") {
-              posix_tz = "CST6CDT,M3.2.0,M11.1.0";  // Central Time with DST
-            } else if (tz == "Europe/London") {
-              posix_tz = "GMT0BST,M3.5.0/1,M10.5.0";  // UK Time with DST
-            } else if (tz == "Europe/Berlin") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Central European Time with DST
-            } else if (tz == "Asia/Tokyo") {
-              posix_tz = "JST-9";  // Japan Standard Time (no DST)
-            } else if (tz == "Australia/Sydney") {
-              posix_tz = "AEST-10AEDT,M10.1.0,M4.1.0/3";  // Australian Eastern Time with DST
-            } else if (tz == "America/Phoenix") {
-              posix_tz = "MST7";  // Arizona (no DST)
-            } else if (tz == "America/Toronto") {
-              posix_tz = "EST5EDT,M3.2.0,M11.1.0";  // Same as New York
-            } else if (tz == "America/Vancouver") {
-              posix_tz = "PST8PDT,M3.2.0,M11.1.0";  // Same as Los Angeles
-            } else if (tz == "Europe/Paris") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Madrid") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Rome") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Amsterdam") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Brussels") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Warsaw") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Stockholm") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Oslo") {
-              posix_tz = "CET-1CEST,M3.5.0,M10.5.0/3";  // Same as Berlin
-            } else if (tz == "Europe/Dublin") {
-              posix_tz = "IST-1GMT0,M10.5.0,M3.5.0/1";  // Irish Standard Time
-            } else if (tz == "Europe/Lisbon") {
-              posix_tz = "WET0WEST,M3.5.0/1,M10.5.0";  // Western European Time
-            } else if (tz == "Europe/Athens") {
-              posix_tz = "EET-2EEST,M3.5.0/3,M10.5.0/4";  // Eastern European Time
-            } else if (tz == "Europe/Helsinki") {
-              posix_tz = "EET-2EEST,M3.5.0/3,M10.5.0/4";  // Same as Athens
-            } else if (tz == "Europe/Istanbul") {
-              posix_tz = "TRT-3";  // Turkey Time (no DST since 2016)
-            } else if (tz == "Europe/Kiev") {
-              posix_tz = "EET-2EEST,M3.5.0/3,M10.5.0/4";  // Same as Athens
-            } else if (tz == "Europe/Moscow") {
-              posix_tz = "MSK-3";  // Moscow Time (no DST)
-            } else if (tz == "Asia/Shanghai") {
-              posix_tz = "CST-8";  // China Standard Time (no DST)
-            } else if (tz == "Asia/Singapore") {
-              posix_tz = "SGT-8";  // Singapore Time (no DST)
-            } else if (tz == "Asia/Dubai") {
-              posix_tz = "GST-4";  // Gulf Standard Time (no DST)
-            } else if (tz == "Australia/Perth") {
-              posix_tz = "AWST-8";  // Western Australia (no DST)
-            } else if (tz == "Australia/Brisbane") {
-              posix_tz = "AEST-10";  // Queensland (no DST)
-            } else if (tz == "Pacific/Auckland") {
-              posix_tz = "NZST-12NZDT,M9.5.0,M4.1.0/3";  // New Zealand
-            } else if (tz == "Pacific/Honolulu") {
-              posix_tz = "HST10";  // Hawaii (no DST)
-            } else if (tz == "America/Mexico_City") {
-              posix_tz = "CST6CDT,M4.1.0,M10.5.0";  // Mexico Central Time
-            } else if (tz == "America/Sao_Paulo") {
-              posix_tz = "BRT3BRST,M10.3.0/0,M2.3.0/0";  // Brazil Time
-            } else if (tz == "America/Buenos_Aires") {
-              posix_tz = "ART3";  // Argentina (no DST)
-            } else if (tz == "Asia/Kolkata") {
-              posix_tz = "IST-5:30";  // India Standard Time
-            } else if (tz == "Asia/Seoul") {
-              posix_tz = "KST-9";  // Korea Standard Time (no DST)
-            } else if (tz == "Asia/Bangkok") {
-              posix_tz = "ICT-7";  // Indochina Time (no DST)
-            } else {
-              // Default to UTC if timezone not recognized
-              posix_tz = "UTC0";
+            static const TimezoneMapping mappings[] = {
+              // North America
+              {"America/Los_Angeles", "PST8PDT,M3.2.0,M11.1.0"},  // Pacific Time (PST/PDT)
+              {"America/Denver", "MST7MDT,M3.2.0,M11.1.0"},  // Mountain Time (MST/MDT)
+              {"America/Phoenix", "MST7"},  // Arizona (MST, no DST)
+              {"America/Chicago", "CST6CDT,M3.2.0,M11.1.0"},  // Central Time (CST/CDT)
+              {"America/New_York", "EST5EDT,M3.2.0,M11.1.0"},  // Eastern Time (EST/EDT)
+              {"America/Toronto", "EST5EDT,M3.2.0,M11.1.0"},  // Eastern Time (EST/EDT)
+              {"America/Mexico_City", "CST6"},  // Central Mexico Time (CST, no DST)
+              {"America/Vancouver", "PST8PDT,M3.2.0,M11.1.0"},  // Pacific Time (PST/PDT)
+              {"America/Edmonton", "MST7MDT,M3.2.0,M11.1.0"},  // Mountain Time (MST/MDT)
+              {"America/Winnipeg", "CST6CDT,M3.2.0,M11.1.0"},  // Central Time (CST/CDT)
+              {"America/Halifax", "AST4ADT,M3.2.0,M11.1.0"},  // Atlantic Time (AST/ADT)
+              {"America/St_Johns", "NST3:30NDT,M3.2.0,M11.1.0"},  // Newfoundland Time (NST/NDT)
+
+              // Central/South America
+              {"America/Sao_Paulo", "BRT3"},  // Brazil Time (BRT, no DST)
+              {"America/Buenos_Aires", "ART3"},  // Argentina Time (ART, no DST)
+              {"America/Santiago", "CLT4CLST,M9.1.0/0,M4.1.0/0"},  // Chile Time (CLT/CLST)
+              {"America/Bogota", "COT5"},  // Colombia Time (COT, no DST)
+              {"America/Lima", "PET5"},  // Peru Time (PET, no DST)
+              {"America/Caracas", "VET4"},  // Venezuela Time (VET, no DST)
+
+              // Europe
+              {"Europe/London", "GMT0BST,M3.5.0/1,M10.5.0/2"},  // GMT/BST
+              {"Europe/Dublin", "GMT0IST,M3.5.0/1,M10.5.0/2"},  // GMT/IST
+              {"Europe/Lisbon", "WET0WEST,M3.5.0/1,M10.5.0/2"},  // WET/WEST
+              {"Europe/Paris", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Berlin", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Amsterdam", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Brussels", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Rome", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Madrid", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Warsaw", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Stockholm", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Oslo", "CET-1CEST,M3.5.0/2,M10.5.0/3"},  // CET/CEST
+              {"Europe/Athens", "EET-2EEST,M3.5.0/3,M10.5.0/4"},  // EET/EEST
+              {"Europe/Helsinki", "EET-2EEST,M3.5.0/3,M10.5.0/4"},  // EET/EEST
+              {"Europe/Istanbul", "TRT-3"},  // Turkey Time (TRT, no DST)
+              {"Europe/Moscow", "MSK-3"},  // Moscow Time (MSK, no DST)
+              {"Europe/Kiev", "EET-2EEST,M3.5.0/3,M10.5.0/4"},  // EET/EEST
+
+              // Middle East & Africa
+              {"Asia/Jerusalem", "IST-2IDT,M3.4.0,M10.5.0"},  // Israel Time (IST/IDT)
+              {"Asia/Dubai", "GST-4"},  // Gulf Standard Time (GST, no DST)
+              {"Asia/Riyadh", "AST-3"},  // Arabia Standard Time (AST, no DST)
+              {"Asia/Tehran", "IRST-3:30"},  // Iran Standard Time (IRST, no DST)
+              {"Africa/Cairo", "EET-2EEST,M4.5.5,M10.5.4"},  // Egypt Time (EET/EEST)
+              {"Africa/Johannesburg", "SAST-2"},  // South Africa Time (SAST, no DST)
+              {"Africa/Lagos", "WAT-1"},  // West Africa Time (WAT, no DST)
+              {"Africa/Nairobi", "EAT-3"},  // East Africa Time (EAT, no DST)
+
+              // Asia
+              {"Asia/Karachi", "PKT-5"},  // Pakistan Time (PKT, no DST)
+              {"Asia/Kolkata", "IST-5:30"},  // India Standard Time (IST, no DST)
+              {"Asia/Dhaka", "BST-6"},  // Bangladesh Time (BST, no DST)
+              {"Asia/Bangkok", "ICT-7"},  // Indochina Time (ICT, no DST)
+              {"Asia/Jakarta", "WIB-7"},  // Western Indonesia Time (WIB, no DST)
+              {"Asia/Singapore", "SGT-8"},  // Singapore Time (SGT, no DST)
+              {"Asia/Kuala_Lumpur", "MYT-8"},  // Malaysia Time (MYT, no DST)
+              {"Asia/Manila", "PST-8"},  // Philippines Time (PST, no DST)
+              {"Asia/Hong_Kong", "HKT-8"},  // Hong Kong Time (HKT, no DST)
+              {"Asia/Shanghai", "CST-8"},  // China Time (CST, no DST)
+              {"Asia/Taipei", "TST-8"},  // Taiwan Time (TST, no DST)
+              {"Asia/Seoul", "KST-9"},  // Korea Standard Time (KST, no DST)
+              {"Asia/Tokyo", "JST-9"},  // Japan Standard Time (JST, no DST)
+
+              // Oceania
+              {"Australia/Perth", "AWST-8"},  // Western Australia (AWST, no DST)
+              {"Australia/Adelaide", "ACST-9:30ACDT,M10.1.0,M4.1.0/3"},  // Central Australia (ACST/ACDT)
+              {"Australia/Darwin", "ACST-9:30"},  // Central Australia (ACST, no DST)
+              {"Australia/Brisbane", "AEST-10"},  // Eastern Australia (AEST, no DST)
+              {"Australia/Sydney", "AEST-10AEDT,M10.1.0,M4.1.0/3"},  // Eastern Australia (AEST/AEDT)
+              {"Australia/Melbourne", "AEST-10AEDT,M10.1.0,M4.1.0/3"},  // Eastern Australia (AEST/AEDT)
+              {"Pacific/Auckland", "NZST-12NZDT,M9.5.0,M4.1.0/3"},  // New Zealand Time (NZST/NZDT)
+              {"Pacific/Fiji", "FJT-12"},  // Fiji Time (FJT, no DST)
+              {"Pacific/Honolulu", "HST10"},  // Hawaii (HST, no DST)
+            };
+
+            const std::string tz = x;
+            const char *posix_tz = "UTC0";
+            bool found = false;
+            for (const auto &mapping : mappings) {
+              if (tz == mapping.iana) {
+                posix_tz = mapping.posix;
+                found = true;
+                break;
+              }
+            }
+
+            if (!found) {
+              // Keep an invalid value from leaving the clock without a usable timezone.
               ESP_LOGW("timezone", "Unknown timezone '%s', defaulting to UTC", tz.c_str());
             }
 
-            setenv("TZ", posix_tz.c_str(), 1);
-            tzset();
+            id(sntp_time).set_timezone(posix_tz);
+            // Log the applied timezone and local time for runtime verification.
+            const auto local_time = id(sntp_time).now();
+            if (local_time.is_valid()) {
+              ESP_LOGI("timezone", "Timezone IANA=%s POSIX=%s local=%04d-%02d-%02d %02d:%02d:%02d",
+                       tz.c_str(), posix_tz,
+                       local_time.year, local_time.month, local_time.day_of_month,
+                       local_time.hour, local_time.minute, local_time.second);
+            } else {
+              ESP_LOGI("timezone", "Timezone IANA=%s POSIX=%s local time unavailable",
+                       tz.c_str(), posix_tz);
+            }
 
-            // Get and display the new local time
-            time_t now = ::time(nullptr);
-            struct tm timeinfo;
-            localtime_r(&now, &timeinfo);
-
-            ESP_LOGI("timezone", "Set timezone to %s (POSIX: %s)", tz.c_str(), posix_tz.c_str());
-            ESP_LOGI("timezone", "New local time: %04d-%02d-%02d %02d:%02d:%02d",
-                     timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday,
-                     timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-
-            // Force lighting schedule to recalculate with new timezone
+            // Recalculate the lighting schedule immediately after a timezone change.
             id(lighting_control_manager).execute();

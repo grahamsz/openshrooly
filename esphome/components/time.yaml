@@ -4,7 +4,7 @@
 time:
   - platform: sntp
     id: sntp_time
-    timezone: "UTC0"  # This gets updated dynamically by timezone selector
+    timezone: "MST7MDT,M3.2.0,M11.1.0"  # This gets updated dynamically by timezone selector
     on_time_sync:
       then:
         - lambda: |-

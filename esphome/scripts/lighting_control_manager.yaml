@@ -62,19 +62,16 @@
 
       // Rest of the lambda code continues...
       // Use system's local time directly - it's already synced with NTP and has timezone applied
-      struct tm timeinfo;
-      time_t now;
-      ::time(&now);  // Use global scope to avoid ambiguity with esphome::time namespace
-      localtime_r(&now, &timeinfo);
-
+      // Use the timezone-aware ESPHome clock instead of the C library timezone state.
+      auto now = id(sntp_time).now();
       // Validate that system time is set (year > 2020)
-      if (timeinfo.tm_year + 1900 < 2020) {
+      if (!now.is_valid() || now.year < 2020) {
         ESP_LOGW("light_debug", "System time not yet synchronized");
         return;
       }
 
-      const int local_min = timeinfo.tm_hour * 60 + timeinfo.tm_min;
-      const int local_sec = timeinfo.tm_hour * 3600 + timeinfo.tm_min * 60 + timeinfo.tm_sec;
+      const int local_min = now.hour * 60 + now.minute;
+      const int local_sec = now.hour * 3600 + now.minute * 60 + now.second;
 
       // ---- window calc using LOCAL time ----
       const int sunrise_h = (int) id(sunrise_hour).state;
