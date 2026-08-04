@@ -137,6 +137,15 @@ def _final_validate_sorting(config: ConfigType) -> ConfigType:
 
 FINAL_VALIDATE_SCHEMA = _final_validate_sorting
 
+
+def _consume_web_server_sockets(config: ConfigType) -> ConfigType:
+    """Reserve sockets for page assets, the event stream, and controls."""
+    from esphome.components import socket
+
+    socket.consume_sockets(5, "web_server")(config)
+    return config
+
+
 sorting_group = {
     cv.Required(CONF_ID): cv.declare_id(cg.int_),
     cv.Required(CONF_NAME): cv.string,
@@ -207,6 +216,7 @@ CONFIG_SCHEMA = cv.All(
     validate_local,
     validate_sorting_groups,
     validate_ota,
+    _consume_web_server_sockets,
 )
 
 
@@ -277,6 +287,10 @@ async def to_code(config):
 
     var = cg.new_Pvariable(config[CONF_ID], paren)
     await cg.register_component(var, config)
+
+    # WebServer registers with ControllerRegistry at runtime, so it must be
+    # included in the registry's compile-time capacity calculation.
+    CORE.register_controller()
 
     version = config[CONF_VERSION]
 

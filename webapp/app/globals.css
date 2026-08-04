@@ -401,6 +401,20 @@ body {
   box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1);
 }
 
+.control-help,
+.control-error {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.control-help {
+  color: #64748b;
+}
+
+.control-error {
+  color: #dc2626;
+}
+
 input[type="range"] {
   width: 100%;
   height: 6px;

@@ -19,7 +19,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [modal, setModal] = useState<ModalState>({ type: null })
-  const [timezone, setTimezone] = useState<string>('America/Denver')
+  const [timezone, setTimezone] = useState<string>('')
+  const [timezoneOptions, setTimezoneOptions] = useState<string[]>([])
+  const [timezoneUpdating, setTimezoneUpdating] = useState(false)
+  const [timezoneError, setTimezoneError] = useState('')
   const [flipScreen, setFlipScreen] = useState(false)
   const [calibrationSuccess, setCalibrationSuccess] = useState(false)
   const [calibrationBusy, setCalibrationBusy] = useState(false)
@@ -70,7 +73,7 @@ export default function Dashboard() {
 
     fetchData()
 
-    const eventSource = api.subscribeToEvents((event) => {
+    const handleEvent = (event: any) => {
       if (event.id) {
         setEntities((prev) => ({
           ...prev,
@@ -84,15 +87,46 @@ export default function Dashboard() {
         // Update timezone from events
         if (event.id === 'select-timezone') {
           setTimezone(event.state)
+          setTimezoneError('')
+          if (Array.isArray(event.option)) {
+            setTimezoneOptions(event.option)
+          }
         }
         if (event.id === 'switch-flip_screen') {
           setFlipScreen(event.state === 'ON' || event.value === true)
         }
       }
-    })
+    }
+
+    let eventSource: EventSource | null = null
+
+    const disconnectEvents = () => {
+      eventSource?.close()
+      eventSource = null
+    }
+
+    const connectEvents = () => {
+      if (document.visibilityState === 'visible' && !eventSource) {
+        eventSource = api.subscribeToEvents(handleEvent)
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        connectEvents()
+      } else {
+        disconnectEvents()
+      }
+    }
+
+    connectEvents()
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', disconnectEvents)
 
     return () => {
-      if (eventSource) eventSource.close()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', disconnectEvents)
+      disconnectEvents()
       Object.values(debounceTimers.current).forEach((timer) => clearTimeout(timer))
     }
   }, [])
@@ -168,13 +202,31 @@ export default function Dashboard() {
     await api.setSwitch(switchId, checked)
   }
 
-  const handleSelectChange = async (selectId: string, value: string) => {
-    await api.setSelect(selectId, value)
-  }
-
   const handleTimezoneChange = async (tz: string) => {
-    setTimezone(tz)
-    await handleSelectChange('timezone', tz)
+    setTimezoneUpdating(true)
+    setTimezoneError('')
+
+    const updated = await api.setSelect('timezone', tz)
+    if (!updated) {
+      setTimezoneError('The device did not accept the timezone change. Please try again.')
+      setTimezoneUpdating(false)
+      return
+    }
+
+    // The device applies select calls on its main loop after acknowledging the
+    // request. Read the authoritative state back instead of assuming success.
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    const confirmed = await api.getSelect('timezone')
+    if (confirmed?.state) {
+      setTimezone(confirmed.state)
+      if (confirmed.state !== tz) {
+        setTimezoneError(`The device kept ${confirmed.state}; ${tz} was not applied.`)
+      }
+    } else {
+      setTimezoneError('The timezone changed, but its confirmed state could not be read.')
+    }
+
+    setTimezoneUpdating(false)
   }
 
   const handleFlipScreenChange = async (flipped: boolean) => {
@@ -1418,16 +1470,22 @@ export default function Dashboard() {
                     className="control-select"
                     value={timezone}
                     onChange={(e) => handleTimezoneChange(e.target.value)}
+                    disabled={timezoneOptions.length === 0 || timezoneUpdating}
                   >
-                    <option value="America/Los_Angeles">Pacific Time</option>
-                    <option value="America/Denver">Mountain Time</option>
-                    <option value="America/Phoenix">Arizona</option>
-                    <option value="America/Chicago">Central Time</option>
-                    <option value="America/New_York">Eastern Time</option>
-                    <option value="Europe/London">London</option>
-                    <option value="Europe/Berlin">Berlin</option>
-                    <option value="Asia/Tokyo">Tokyo</option>
+                    {timezoneOptions.length === 0 ? (
+                      <option value={timezone}>{timezone || 'Loading timezones…'}</option>
+                    ) : (
+                      timezoneOptions.map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                      ))
+                    )}
                   </select>
+                  {timezoneUpdating && (
+                    <div className="control-help">Applying timezone…</div>
+                  )}
+                  {timezoneError && (
+                    <div className="control-error">{timezoneError}</div>
+                  )}
                 </div>
               </div>
 
