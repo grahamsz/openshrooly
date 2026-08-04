@@ -34,6 +34,16 @@ binary_sensor:
     web_server:
       sorting_group_id: grp_hidden
 
+  # Grow light state for Home Assistant history and dashboard timelines.
+  # The template publishes only state transitions, so it stays low-noise.
+  - platform: template
+    id: grow_lights_on
+    name: "Grow Lights"
+    icon: mdi:lightbulb-group
+    lambda: 'return id(lights_on_flag);'
+    web_server:
+      sorting_group_id: grp_hidden
+
   # Water calibration status (for web UI)
   - platform: template
     id: water_calibrated

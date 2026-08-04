@@ -42,33 +42,33 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Required(CONF_BUTTONS): exactly_four(
             binary_sensor.binary_sensor_schema()
         ),
-        cv.Required(CONF_RAW_SENSORS): exactly_four(
+        cv.Optional(CONF_RAW_SENSORS): exactly_four(
             sensor.sensor_schema(
                 accuracy_decimals=0,
                 entity_category="diagnostic",
             )
         ),
-        cv.Required(CONF_BASELINE_SENSORS): exactly_four(
+        cv.Optional(CONF_BASELINE_SENSORS): exactly_four(
             sensor.sensor_schema(
                 accuracy_decimals=0,
                 entity_category="diagnostic",
             )
         ),
-        cv.Required(CONF_DELTA_SENSORS): exactly_four(
+        cv.Optional(CONF_DELTA_SENSORS): exactly_four(
             sensor.sensor_schema(
                 unit_of_measurement="%",
                 accuracy_decimals=2,
                 entity_category="diagnostic",
             )
         ),
-        cv.Required(CONF_NOISE_SENSORS): exactly_four(
+        cv.Optional(CONF_NOISE_SENSORS): exactly_four(
             sensor.sensor_schema(
                 unit_of_measurement="%",
                 accuracy_decimals=3,
                 entity_category="diagnostic",
             )
         ),
-        cv.Required(CONF_THRESHOLD_SENSORS): exactly_four(
+        cv.Optional(CONF_THRESHOLD_SENSORS): exactly_four(
             sensor.sensor_schema(
                 unit_of_measurement="%",
                 accuracy_decimals=2,
@@ -110,7 +110,7 @@ async def to_code(config):
         (CONF_NOISE_SENSORS, var.set_noise_sensor),
         (CONF_THRESHOLD_SENSORS, var.set_threshold_sensor),
     ):
-        for index, sensor_config in enumerate(config[key]):
+        for index, sensor_config in enumerate(config.get(key, [])):
             diagnostic_sensor = await sensor.new_sensor(sensor_config)
             cg.add(setter(index, diagnostic_sensor))
 

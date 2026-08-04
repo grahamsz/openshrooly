@@ -55,35 +55,9 @@ shrooly_touch:
             id: ui_navigation_handler
             button: !lambda 'return id(flip_screen).state ? 1 : 4;'
 
-  raw_sensors:
-    - { id: touch_1_raw, name: "Touch 1 Raw" }
-    - { id: touch_2_raw, name: "Touch 2 Raw" }
-    - { id: touch_3_raw, name: "Touch 3 Raw" }
-    - { id: touch_4_raw, name: "Touch 4 Raw" }
-
-  baseline_sensors:
-    - { id: touch_1_baseline, name: "Touch 1 Baseline" }
-    - { id: touch_2_baseline, name: "Touch 2 Baseline" }
-    - { id: touch_3_baseline, name: "Touch 3 Baseline" }
-    - { id: touch_4_baseline, name: "Touch 4 Baseline" }
-
-  delta_sensors:
-    - { id: touch_1_delta, name: "Touch 1 Delta" }
-    - { id: touch_2_delta, name: "Touch 2 Delta" }
-    - { id: touch_3_delta, name: "Touch 3 Delta" }
-    - { id: touch_4_delta, name: "Touch 4 Delta" }
-
-  noise_sensors:
-    - { id: touch_1_noise, name: "Touch 1 Noise" }
-    - { id: touch_2_noise, name: "Touch 2 Noise" }
-    - { id: touch_3_noise, name: "Touch 3 Noise" }
-    - { id: touch_4_noise, name: "Touch 4 Noise" }
-
-  threshold_sensors:
-    - { id: touch_1_threshold, name: "Touch 1 Threshold" }
-    - { id: touch_2_threshold, name: "Touch 2 Threshold" }
-    - { id: touch_3_threshold, name: "Touch 3 Threshold" }
-    - { id: touch_4_threshold, name: "Touch 4 Threshold" }
+  # Per-channel touch diagnostics are deliberately omitted in production.
+  # Calibration and button detection continue inside the controller without
+  # publishing twenty rapidly changing sensor entities.
 
   backend:
     id: touch_backend
