@@ -17,6 +17,7 @@ interface ModalState {
 export default function Dashboard() {
   const [entities, setEntities] = useState<EntityState>({})
   const [loading, setLoading] = useState(true)
+  const [firmwareVersion, setFirmwareVersion] = useState('Loading…')
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [modal, setModal] = useState<ModalState>({ type: null })
   const [timezone, setTimezone] = useState<string>('')
@@ -47,6 +48,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      try {
+        const version = await api.getTextSensor('firmware_version')
+        setFirmwareVersion(version?.state || 'Unknown')
+      } catch (e) {
+        setFirmwareVersion('Unknown')
+      }
+
       try {
         const numbers = await api.getAllNumbers()
         setEntities((prev) => ({ ...prev, ...numbers }))
@@ -730,7 +738,7 @@ export default function Dashboard() {
         <div className="card card-settings" onClick={() => setModal({ type: 'settings' })}>
           <div className="card-icon">⚙️</div>
           <div className="card-label">Settings</div>
-          <div className="card-value">v1.0.0</div>
+          <div className="card-value">v{firmwareVersion}</div>
           <div className="card-detail">System & Network</div>
         </div>
       </div>
@@ -1425,7 +1433,7 @@ export default function Dashboard() {
                 <div className="settings-info">
                   <div className="info-row">
                     <span className="info-label">Version:</span>
-                    <span className="info-value">1.0.0</span>
+                    <span className="info-value">{firmwareVersion}</span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Voltage:</span>
