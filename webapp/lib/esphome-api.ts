@@ -35,6 +35,17 @@ class ESPHomeAPI {
     }
   }
 
+  async getTextSensor(textSensorId: string): Promise<SensorData | null> {
+    try {
+      const response = await fetch(`${this.baseUrl}/text_sensor/${textSensorId}`)
+      if (!response.ok) return null
+      return await response.json()
+    } catch (error) {
+      console.error(`Failed to fetch text sensor ${textSensorId}:`, error)
+      return null
+    }
+  }
+
   async getSwitch(switchId: string): Promise<any> {
     try {
       const response = await fetch(`${this.baseUrl}/switch/${switchId}`)
