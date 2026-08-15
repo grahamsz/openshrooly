@@ -319,6 +319,9 @@ export default function Dashboard() {
   // Helper to get values
   const getSensor = (id: string) => entities[`sensor-${id}`]?.value
   const getNumber = (id: string) => entities[`number-${id}`]?.value
+  const isValidHumiditySettings = (target: number, hysteresis: number) =>
+    Number.isFinite(target) && target >= 30 && target <= 100 &&
+    Number.isFinite(hysteresis) && hysteresis >= 0 && hysteresis <= 5
 
   // Sync lighting state from entities
   useEffect(() => {
@@ -436,8 +439,9 @@ export default function Dashboard() {
       const humidity = 60 + (percentage * 40) // Map 0-100% of slider to 60-100% humidity
       const roundedHumidity = Math.round(humidity * 2) / 2 // Round to 0.5%
 
-      const currentTarget = humidityDragValues.current.target
-      const currentHyst = humidityDragValues.current.hysteresis
+      const currentTarget = Number(getNumber('target_humidity'))
+      const currentHyst = Number(getNumber('humidity__hysteresis'))
+      if (!isValidHumiditySettings(currentTarget, currentHyst)) return
 
       if (draggingHumidityHandle === 'target') {
         const clampedTarget = Math.max(60 + currentHyst, Math.min(100 - currentHyst, roundedHumidity))
@@ -843,11 +847,12 @@ export default function Dashboard() {
       )}
 
       {modal.type === 'humidity' && (() => {
-        const hysteresis = Number(getNumber('humidity__hysteresis')) || 0
-        const target = Number(getNumber('target_humidity')) || 70
+        const hysteresis = Number(getNumber('humidity__hysteresis'))
+        const target = Number(getNumber('target_humidity'))
+        const humiditySettingsReady = isValidHumiditySettings(target, hysteresis)
 
         // Initialize ref with current values ONLY if not dragging
-        if (!draggingHumidityHandle) {
+        if (humiditySettingsReady && !draggingHumidityHandle) {
           humidityDragValues.current = { target, hysteresis }
         }
 
@@ -873,6 +878,10 @@ export default function Dashboard() {
               <button className="modal-close-x" onClick={() => setModal({ type: null })}>×</button>
               <h2>💧 Humidity Control</h2>
               <div className="modal-content">
+                {!humiditySettingsReady ? (
+                  'Waiting for humidity settings…'
+                ) : (
+                  <>
                 <div className="control-group">
                   <label>Target: {target.toFixed(1)}% ± {hysteresis.toFixed(2)}% • Turns ON below {lowerBound.toFixed(1)}%, OFF {upperBound >= 100 ? 'at' : 'above'} {upperBound.toFixed(1)}%</label>
                   <div className="dual-slider-container humidity-slider-container">
@@ -1010,6 +1019,8 @@ export default function Dashboard() {
                     }
                   />
                 </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

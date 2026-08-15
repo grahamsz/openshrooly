@@ -105,6 +105,7 @@ class ESPHomeAPI {
   async getAllNumbers(): Promise<{ [key: string]: any }> {
     const numberIds = [
       'target_humidity',
+      'humidity__hysteresis',
       'humidifier__speed',
       'temperature__minimum',
       'temperature__maximum',
