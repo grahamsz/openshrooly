@@ -4,6 +4,15 @@
 # ========================================================================
 
 text_sensor:
+  - platform: template
+    id: firmware_version
+    name: "Firmware Version"
+    internal: true
+    entity_category: diagnostic
+    update_interval: never
+    web_server:
+      sorting_group_id: grp_hidden
+
   # =======================================================================
   # Status Display Sensors
   # These are marked as internal: true to prevent them from syncing to
